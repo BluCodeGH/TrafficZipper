@@ -10,16 +10,30 @@ def test_rail_fun(pos):
     #print(pos)
     return (pos, 1/(pos+1)*100)
 
-rail0 = Rail(test_rail_fun)
-rail1 = LeftRail(0)
-rail2 = RightRail(0)
-rail3 = StraightRail(0)
-car1 = Car(1.0, rail1, 1)
-car2 = Car(1.0, rail2, 2)
-car3 = Car(1.0, rail3, 3)
-intersection1 = Intersection([car1, car2, car3], [rail1])
+# rail0 = Rail(test_rail_fun)
+# rail1 = LeftRail(0)
+# rail2 = LeftRail(1)
+# rail3 = LeftRail(2)
+# rail4 = LeftRail(3)
+# car1 = Car(1.0, rail1, 1)#, [(50, 0.01), (100, -0.01)])
+# car2 = Car(1.0, rail2, 2)#, [(400, 0.2), (900, -0.3)])
+# car3 = Car(1.0, rail3, 3)
+# car4 = Car(1.0, rail4, 4)
+# intersection1 = Intersection([car1, car2, car3, car4], [rail1])
 
-view = ZipperView(intersection=intersection1,
+cars = []
+rails = []
+for i in range(4):
+    leftrail = LeftRail(i)
+    rightrail = RightRail(i)
+    straightrail = StraightRail(i)
+    rails.extend([leftrail, rightrail, straightrail])
+    cars.append(Car(1.0, leftrail, 1))
+    cars.append(Car(1.0, rightrail, 1))
+    cars.append(Car(1.0, straightrail, 1))
+intersection1 = Intersection(cars, rails)
+
+view = SetupView(intersection=intersection1,
                   window_size=(800, 600),
                   x_lanes=2,
                   y_lanes=2)
