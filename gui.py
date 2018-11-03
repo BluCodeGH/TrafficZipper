@@ -1,6 +1,6 @@
 import math
 import sys
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 import pygame
 
@@ -291,6 +291,8 @@ class ZipperView(IntersectionView):
         self.car_rect = self.car_img.get_rect()
         pygame.display.set_icon(self.car_img)
 
+        self.car_last_positions: Dict[Car, Tuple[int, int]] = {}
+
     def draw_cars(self, cars: List[Car], time: int):
         for car in cars:
             rail = car.rail
@@ -299,8 +301,8 @@ class ZipperView(IntersectionView):
             y = -y
 
             # rotation
-            rise = x - self.lastx
-            run = y - self.lasty
+            rise = x - self.car_last_positions.get(car, (x, y))[0]
+            run = y - self.car_last_positions.get(car, (x, y))[1]
             print(rise, run)
             if run:
                 # no chance of a divide-by-0 error, so just calculate the angle
@@ -319,7 +321,7 @@ class ZipperView(IntersectionView):
 
             # draw onto screen
             self.screen.blit(new_img, new_rect)
-            self.lastx, self.lasty = x, y
+            self.car_last_positions[car] = x, y
 
     def do_updates(self):
         super().do_updates()
