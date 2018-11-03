@@ -267,10 +267,16 @@ class ZipperView:
             # rotation
             rise = x - self.lastx
             run = y - self.lasty
+            print(rise, run)
             if run:
+                # no chance of a divide-by-0 error, so just calculate the angle
                 angle = math.degrees(math.atan(rise / run))
                 new_img = pygame.transform.rotate(self.car_img, angle-90)
+            elif rise:
+                # no x change so we're going vertically
+                new_img = pygame.transform.rotate(self.car_img, -90)
             else:
+                # no change at all - don't transform i guess
                 new_img = self.car_img
 
             # new transformed rect
