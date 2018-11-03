@@ -35,6 +35,7 @@ class Intersection:
                     self.collisions_dict[rail_b][rail_a] = scalar_b
 
     def update(self):
+        print(self.cars)
         """
         iterate and check with all other cars, handle() at first coll.
         """
@@ -52,21 +53,22 @@ class Intersection:
             for j in collision_car_indices:
                 car_2 = self.cars[j]
                 collision_time = self.collision(car_1, car_2)
-                print(collision_time)
+                print("R", car_1, car_2, collision_time)
                 if collision_time >= 0:
+                    print("Coll between", car_1, car_2)
                     _, _, speed_1, acc_1, time_1 = car_1.get_interval(collision_time)
                     _, _, speed_2, acc_2, time_2 = car_2.get_interval(collision_time)
 
                     # Get the speeds that each car will have at the time they collide.
                     speed_1_coll_time = speed_1 + acc_1 * time_1
                     speed_2_coll_time = speed_2 + acc_2 * time_2
-                    if speed_2_coll_time < speed_1_coll_time:
+                    if speed_2_coll_time >= speed_1_coll_time:
                         # car_1 has the greater speed at the collision time, so it should be the accelerator.
                         self.handle(i, j, collision_time)
                     else:
                         # car_2 has the greater speed at the collision time, so it should be the accelerator.
                         self.handle(j, i, collision_time)
-                    break
+                    return
 
     def handle(self, carAi, carDi, time):
         """
@@ -91,11 +93,13 @@ class Intersection:
         d_dist = 60  # self.I[carD.rail][carA.rail]
 
         i, dist, speed, a, dt = carA.get_interval(time)
+        print(carA.get_interval(time))
         a2 = a
         newA = carA.copy()
         while a2 < max_acceleration and self.collision(carD, newA) != -1:
-            a2 += 0.1
+            a2 += 0.01
             newA.accells[i] = (newA.accells[i][0], a2)
+        print("New a: ", a2)
 
 
         newD = carD.copy()
@@ -106,11 +110,15 @@ class Intersection:
             newD.accells[i] = (newD.accells[i][0], a2)
             print(newD.get_pos(time))
             if self.collision(newD, newA) == -1:
+                print("Found it")
                 break
-            a2 -= 0.1
+            a2 -= 0.001
+
+        print("got cars:", newA.accells, newD.accells)
 
         self.cars[carAi] = newA
         self.cars[carDi] = newD
+        print(self.cars)
         self.update()
 
     def collision(self, carA: Car, carB: Car):
@@ -125,6 +133,7 @@ class Intersection:
             if distance(a, b) < carA.radius + carB.radius:
                 return t
             t += 0.1
+        print("All good")
         return -1
 
     def find_intersection(self, rail_1, rail_2):

@@ -1,7 +1,7 @@
 import math
 from rail import Rail
 
-max_acceleration = 2
+max_acceleration = 0.5
 
 
 class Car:
@@ -84,7 +84,7 @@ class Car:
         assumed to be cruising at a constant velocity after leaving the intersection.
         """
         time = 0
-        speed = 0
+        speed = self.start_speed
         oldD = 0
         for d, a in self.accells:
             d -= oldD
@@ -102,3 +102,6 @@ class Car:
         This copies a car
         """
         return Car(self.start_speed, self.rail, self.priority, self.accells.copy())
+
+    def __repr__(self):
+        return str(self.priority) + ":" + str(self.accells)
