@@ -23,13 +23,33 @@ class Intersection:
                 if rail_a != rail_b:
                     self.collisions_dict[rail_a][rail_b] = None
 
+        for rail_a in self.rails:
+            for rail_b in self.rails:
+                if self.collisions_dict[rail_a][rail_b]:
+                    # We have already filled in this dictionary entry.
+                    continue
+                scalar_a, scalar_b = self.find_intersection(rail_a, rail_b)
+                if scalar_a >= 0:
+                    # If the rails don't collide, the dictionary value stays at 0.
+                    self.collisions_dict[rail_a][rail_b] = scalar_a
+                    self.collisions_dict[rail_b][rail_a] = scalar_b
+
     def update(self):
         """
         iterate and check with all other cars, handle() at first coll.
         """
         for i in range(len(self.cars) - 1):
+            # This will contain the indices of the rails that self.rails[i] will collide with.
+            collision_car_indices = []
+            car_1 = self.cars[i]
             for j in range(i + 1, len(self.cars)):
-                car_1 = self.cars[i]
+                car_2 = self.cars[j]
+                if self.collisions_dict[car_1.rail][car_2.rail]:
+                    collision_car_indices.append(j)
+
+            collision_car_indices.sort(key=lambda x: self.collisions_dict[self.cars[i].rail][self.cars[x].rail])
+
+            for j in collision_car_indices:
                 car_2 = self.cars[j]
                 collision_time = self.collision(car_1, car_2)
                 print(collision_time)
@@ -106,6 +126,24 @@ class Intersection:
                 return t
             t += 0.1
         return -1
+
+    def find_intersection(self, rail_1, rail_2):
+        """
+        Given two rails, returns the point of intersection, or None if they do not intersect.
+
+        :param rail_1:
+        :param rail_2:
+        :return: The point of intersection of rail_1 and rail_2, or None if they don't intersect.
+        """
+        min_dist = None
+        min_steps = 0.0, 0.0
+        for step_1 in range(rail_1.total_distance):
+            for step_2 in range(rail_2.total_distance):
+                rail_dist = distance(rail_1.get(step_1), rail_2.get(step_2))
+                if min_dist is not None or rail_dist < min_dist:
+                    min_dist = rail_dist
+                    min_steps = step_1, step_2
+        return min_steps if min_dist < 0.3 else -1, -1
 
 
 def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
