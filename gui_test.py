@@ -21,12 +21,13 @@ def test_rail_fun(pos):
 # car4 = Car(1.0, rail4, 4)
 # intersection1 = Intersection([car1, car2, car3, car4], [rail1])
 
+
 cars = []
 rails = []
-for i in range(4):
-    leftrail = LeftRail(i)
-    rightrail = RightRail(i)
-    straightrail = StraightRail(i)
+for rotation in range(4):
+    leftrail = LeftRail(rotation)
+    rightrail = RightRail(rotation)
+    straightrail = StraightRail(rotation)
     rails.extend([leftrail, rightrail, straightrail])
     cars.append(Car(1.0, leftrail, 1))
     cars.append(Car(1.0, rightrail, 1))
