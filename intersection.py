@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import math
 
-from car import Car
+from car import Car, max_acceleration
 from rail import Rail
 
 
@@ -33,39 +33,45 @@ class Intersection:
                 if car_1 != car_2 and self.collision(car_1, car_2):
                     pass
 
-    def handle(self, carA, carD, time):
+    def handle(self, carAi, carDi, time):
         """
         This function stops two cars from colliding.
         carA is the car to accelerate
         carD is the car to decelerator
         time is the time of the collision
 
-        It works by first changing carAs last acceleration (before the collision) so it arrives on the intersection at the time.
-        Next it iteratively slows carD until they do not hit at the intersection.
+        It works by first finding the slowest carA can go.
 
         TODO:
         This should then call update with the changed cars in order to propagate the changes.
         It should return the total amount of speed changes so its parent update can optimize which car slows down / speeds up.
         """
+        carA = self.cars[carAi]
+        carD = self.cars[carDi]
+
         a_dist = 60  # self.I[carA.rail][carD.rail]
         d_dist = 60  # self.I[carD.rail][carA.rail]
         i, dist, speed, a, dt = carA.get_interval(time)
-        a2 = 2 * (a_dist - speed * dt) / (dt ** 2)
+        a2 = a
         newA = carA.copy()
-        newA.accells[i] = (newA.accells[i][0], a2)
+        while a2 < max_acceleration and self.collision(carD, newA) != -1:
+            a2 += 0.1
+            newA.accells[i] = (newA.accells[i][0], a2)
 
         newD = carD.copy()
         i, dist, speed, a, dt = newD.get_interval(time)
         a2 = a
-        while a2 >= -5:
+        while a2 >= -max_acceleration:
             print(a2)
             newD.accells[i] = (newD.accells[i][0], a2)
             print(newD.get_pos(time))
-            if not self.collision(newD, newA):
+            if not self.collision(newD, newA) == -1:
                 break
             a2 -= 0.1
 
-        print(newD.accells, newA.accells)
+        self.cars[carAi] = newA
+        self.cars[carBi] = newB
+        self.update()
 
     def collision(self, carA, carB):
         """

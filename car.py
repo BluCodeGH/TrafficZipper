@@ -1,6 +1,7 @@
 import math
 from rail import Rail
 
+max_acceleration = 2
 
 class Car:
 
