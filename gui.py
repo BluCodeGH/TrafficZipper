@@ -8,7 +8,7 @@ from intersection import Intersection
 from car import Car
 
 
-class ZipperView:
+class IntersectionView:
     BACK_COLOUR = 0x2e, 0x7d, 0x32
     BORDER_COLOUR = 0, 0, 0
     ASPHALT_COLOUR = 0xcc, 0xcc, 0xcc
@@ -29,11 +29,6 @@ class ZipperView:
 
         pygame.init()
         self.screen = pygame.display.set_mode(window_size)
-        pygame.display.set_caption("Traffic Zipper")
-
-        self.car_img = pygame.image.load("assets/car.png")
-        self.car_rect = self.car_img.get_rect()
-        pygame.display.set_icon(self.car_img)
 
         self.clock = pygame.time.Clock()
 
@@ -258,6 +253,44 @@ class ZipperView:
                                                self.BORDER_WIDTH)
         self.screen.fill(self.BORDER_COLOUR, bottom_right_corner)
 
+    def handle_event(self, event):
+        if event.type == pygame.QUIT:
+            # User clicked the close button
+            sys.exit()
+
+    def do_updates(self):
+        # Background colour
+        self.screen.fill(self.BACK_COLOUR)
+
+        # draw stuff
+        self.draw_intersection(self.x_lanes, self.y_lanes)
+
+        # Respond to events
+        for event in pygame.event.get():
+            self.handle_event(event)
+
+    def tick(self):
+        # delay
+        self.clock.tick(4)
+
+        self.do_updates()
+
+        # Update display
+        pygame.display.flip()
+
+        # Increment timer
+        self.time += 1
+
+
+class ZipperView(IntersectionView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        pygame.display.set_caption("Traffic Zipper")
+
+        self.car_img = pygame.image.load("assets/car.png")
+        self.car_rect = self.car_img.get_rect()
+        pygame.display.set_icon(self.car_img)
+
     def draw_cars(self, cars: List[Car], time: int):
         for car in cars:
             rail = car.rail
@@ -287,25 +320,96 @@ class ZipperView:
             self.screen.blit(new_img, new_rect)
             self.lastx, self.lasty = x, y
 
-    def tick(self):
-        # delay
-        self.clock.tick(4)
-
-        # Respond to events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                # User clicked the close button
-                sys.exit()
-
-        # Background colour
-        self.screen.fill(self.BACK_COLOUR)
-
-        # draw stuff
-        self.draw_intersection(self.x_lanes, self.y_lanes)
+    def do_updates(self):
+        super().do_updates()
         self.draw_cars(self.intersection.cars, self.time)
 
-        # Update display
-        pygame.display.flip()
 
-        # Increment timer
-        self.time += 1
+class SetupView(IntersectionView):
+    CAR_HINT_MARGIN = 50
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        pygame.display.set_caption("Setup")
+
+        self.car_img = pygame.image.load("assets/car.png")
+        self.car_img_translucent = self.car_img.copy()
+        self.car_img_translucent.set_alpha(0.5)
+        self.car_rect = self.car_img.get_rect()
+
+    def show_car_hint(self, mousex: int, mousey: int):
+        x_lines = self.x_lanes + 1
+        y_lines = self.y_lanes + 1
+        centre_rect_width = self.y_lanes * self.LANE_WIDTH
+        centre_rect_height = self.x_lanes * self.LANE_WIDTH
+        centre_x = self.width / 2
+        centre_y = self.height / 2
+        centre_left_bound = centre_x - centre_rect_width / 2
+        centre_right_bound = centre_x + centre_rect_width / 2
+        centre_top_bound = centre_y - centre_rect_height / 2
+        centre_bottom_bound = centre_y + centre_rect_height / 2
+
+        if mousex <= centre_left_bound:
+            # left side of lines
+            if self.x_lanes % 2 == 0:
+                # even number of lanes
+                # only check bottom
+                for lane in range(self.x_lanes // 2):
+                    lane_bound_upper = centre_y + self.LANE_WIDTH * lane
+                    lane_bound_lower = centre_y + self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_upper <= mousey < lane_bound_lower:
+                        new_rect = self.car_img_translucent.get_rect().copy()
+                        new_rect.center = (centre_left_bound - self.CAR_HINT_MARGIN,
+                                           (lane_bound_lower + lane_bound_upper) / 2)
+                        self.screen.blit(self.car_img_translucent, new_rect)
+        elif mousex >= centre_right_bound:
+            # right side of lines
+            if self.x_lanes % 2 == 0:
+                # even number of lanes
+                # only check top
+                for lane in range(self.x_lanes // 2):
+                    lane_bound_upper = centre_y - self.LANE_WIDTH * lane
+                    lane_bound_lower = centre_y - self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_upper > mousey >= lane_bound_lower:
+                        new_rect = self.car_img_translucent.get_rect().copy()
+                        new_rect.center = (centre_right_bound + self.CAR_HINT_MARGIN,
+                                           (lane_bound_lower + lane_bound_upper) / 2)
+                        self.screen.blit(self.car_img_translucent, new_rect)
+        elif mousey <= centre_top_bound:
+            # top side of lines
+            if self.y_lanes % 2 == 0:
+                # even number of lanes
+                # only check left
+                for lane in range(self.y_lanes // 2):
+                    lane_bound_left = centre_x - self.LANE_WIDTH * lane
+                    lane_bound_right = centre_x - self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_left > mousex >= lane_bound_right:
+                        new_img = pygame.transform.rotate(self.car_img_translucent, -90)
+                        new_rect = new_img.get_rect()
+                        new_rect.center = ((lane_bound_left + lane_bound_right) / 2,
+                                           centre_top_bound - self.CAR_HINT_MARGIN)
+                        self.screen.blit(new_img, new_rect)
+        elif mousey >= centre_bottom_bound:
+            # right side of lines
+            if self.y_lanes % 2 == 0:
+                # even number of lanes
+                # only check right
+                for lane in range(self.x_lanes // 2):
+                    lane_bound_left = centre_x + self.LANE_WIDTH * lane
+                    lane_bound_right = centre_x + self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_left <= mousex < lane_bound_right:
+                        new_img = pygame.transform.rotate(self.car_img_translucent, 90)
+                        new_rect = new_img.get_rect()
+                        new_rect.center = ((lane_bound_left + lane_bound_right) / 2,
+                                           centre_bottom_bound + self.CAR_HINT_MARGIN)
+                        self.screen.blit(new_img, new_rect)
+
+    def handle_event(self, event):
+        super().handle_event(event)
+        #if event.type == pygame.MOUSEMOTION:
+        #    self.show_car_hint(*event.pos)
+
+    def do_updates(self):
+        super().do_updates()
+        mousex, mousey = pygame.mouse.get_pos()
+        self.show_car_hint(mousex, mousey)

@@ -1,6 +1,7 @@
 import math
 from rail import Rail
 
+max_acceleration = 2
 
 class Car:
 
@@ -8,6 +9,8 @@ class Car:
         self.start_speed = start_speed
         self.rail = rail
         self.position = 0.0
+        # Each element is a tuple containing the end position of the car (i.e. when the car changes its acceleration),
+        # and the acceleration of the car during that interval.
         self.accells = accells or [(rail.max_position, 0)]
         self.priority = priority
         self.radius = 10   # TODO:  Change this if necessary
@@ -22,7 +25,8 @@ class Car:
         """
         This takes a single time argument.
 
-        This returns a bunch of internal information about the *start of the acceleration range the car is in at a given time*.
+        This returns a bunch of internal information about the *start of the acceleration range the car is in at a given
+        time*.
         This does *not* account for the car's position within the acceleration range.
         It returns: 
             the index of the range (or None if the car has passed out of all ranges, in which case it is assumed to have
@@ -30,7 +34,7 @@ class Car:
             the distance covered by the range
             the speed the car starts the range with
             the acceleration during the range
-            the time the car *has left in the range*
+            the time the car has spent in the range
         """
         scalar = 0
         speed = self.start_speed
