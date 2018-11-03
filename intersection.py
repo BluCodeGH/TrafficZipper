@@ -144,12 +144,16 @@ class Intersection:
         """
         min_dist = None
         min_steps = 0.0, 0.0
-        for step_1 in range(rail_1.total_distance):
-            for step_2 in range(rail_2.total_distance):
+        step_1 = 0
+        while step_1 < rail_1.total_distance:
+            step_2 = 0
+            while step_2 < rail_2.total_distance:
                 rail_dist = distance(rail_1.get(step_1), rail_2.get(step_2))
                 if min_dist is None or rail_dist < min_dist:
                     min_dist = rail_dist
                     min_steps = step_1, step_2
+                step_2 += 1
+            step_1 += 1
         return min_steps if min_dist < 0.3 else (-1, -1)
 
 
