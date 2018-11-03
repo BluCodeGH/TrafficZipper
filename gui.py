@@ -341,6 +341,7 @@ class SetupView(IntersectionView):
         # self.car_img_translucent = self.car_img.copy()
         # self.car_img_translucent.set_alpha(128)
         self.car_rect = self.car_img.get_rect()
+        self.start_img = pygame.image.load("assets/start.png")
 
         # mode
         # 0 - place initial car position
@@ -566,31 +567,40 @@ class SetupView(IntersectionView):
                                         pointlist.append((x + self.width/2, y + self.height/2))
                                     pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
 
+    def handle_start_button(self, event):
+        if event.pos[0] > self.width - 100 and event.pos[1] > self.height - 100:
+            sys.exit()
+
     def handle_event(self, event):
         super().handle_event(event)
         #if event.type == pygame.MOUSEMOTION:
         #    self.show_car_hint(*event.pos)
         if event.type == pygame.MOUSEBUTTONDOWN:
-            print(self.car_hint_showing, self.rail_hint_showing)
             if self.car_hint_showing:
                 self.mode = 1
             if self.rail_hint_showing:
                 self.mode = 0
+            self.handle_start_button(event)
 
     def _check_rail(self, rail: Rail) -> bool:
         x, y = rail.get(0)
         y = -y
         return ((self.current_lane_area == self.centre_left_bound
-                        and self.current_lane_bound_upper <= (y + self.height/2) < self.current_lane_bound_lower)
-                    or (self.current_lane_area == self.centre_right_bound
-                        and self.current_lane_bound_upper > (y + self.height/2) >= self.current_lane_bound_lower)
-                    or (self.current_lane_area == self.centre_top_bound
-                        and self.current_lane_bound_upper > (x + self.width/2) >= self.current_lane_bound_lower)
-                    or (self.current_lane_area == self.centre_bottom_bound
-                        and self.current_lane_bound_upper <= (x + self.width/2) < self.current_lane_bound_lower))
+                    and self.current_lane_bound_upper <= (y + self.height/2) < self.current_lane_bound_lower)
+                or (self.current_lane_area == self.centre_right_bound
+                    and self.current_lane_bound_upper > (y + self.height/2) >= self.current_lane_bound_lower)
+                or (self.current_lane_area == self.centre_top_bound
+                    and self.current_lane_bound_upper > (x + self.width/2) >= self.current_lane_bound_lower)
+                or (self.current_lane_area == self.centre_bottom_bound
+                    and self.current_lane_bound_upper <= (x + self.width/2) < self.current_lane_bound_lower))
 
     def do_updates(self):
         super().do_updates()
+
+        # show start button
+        btn_rect = pygame.rect.Rect(self.width-100, self.height-100, 64, 64)
+        self.screen.blit(self.start_img, btn_rect)
+
         mousex, mousey = pygame.mouse.get_pos()
         if self.mode == 0:
             self.show_car_hint(mousex, mousey)
