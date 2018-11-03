@@ -13,13 +13,13 @@ class Car:
         # and the acceleration of the car during that interval.
         self.accells = accells or [(0, 0)]
         self.priority = priority
-        self.radius = 10   # TODO:  Change this if necessary
+        self.radius = 3   # TODO:  Change this if necessary
 
-    def get_location(self, new_position=None):
+    def get_location(self, time):
         """
-        Returns the (x, y) location of the car at new_position if it's specified, or at the car's position otherwise.
+        Returns the (x, y) location of the car at a certain time.
         """
-        return self.rail.fun(new_position or self.position)
+        return self.rail.fun(self.get_pos(time))
 
     def get_interval(self, time):
         """
