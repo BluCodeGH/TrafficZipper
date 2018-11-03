@@ -13,7 +13,6 @@ class Rail:
 
 class LeftRail(Rail):
     def __init__(self, fun: Callable, transform):
-        Rail.__init__(self, fun)
         self.outside_len = 100
         self.inside_width = 100
         self.curve_length = (2 * math.pi * 75) / 4
@@ -27,14 +26,14 @@ class LeftRail(Rail):
             x, y = -1 * y, x
         return x, y
 
-    def getXYfromScalar(self, scalar):
+    def get(self, scalar):
         if scalar < self.cutoffs[0]:
             len_along_entry = scalar * self.outside_len / self.cutoffs[0]
-            x_cord = self.outside_len - len_along_entry + self.inside_width / 2
+            x_cord = 0 - (self.outside_len - len_along_entry + self.inside_width / 2)
             y_cord = -25
             return self.applyTransform(x_cord, y_cord, self.transform)
         elif scalar > self.cutoffs[1]:
-            len_along_entry = (1000 - scalar) * self.outside_len / self.cutoffs[1]
+            len_along_entry = (1000 - scalar) * self.outside_len / (1000 - self.cutoffs[1])
             y_cord = self.outside_len - len_along_entry + self.inside_width / 2
             x_cord = 25
             return x_cord, y_cord
@@ -42,11 +41,9 @@ class LeftRail(Rail):
             inner_scalar = self.cutoffs[1] - self.cutoffs[0]
             prop_scalar = (scalar - self.cutoffs[0]) / inner_scalar
             angle = 90 * prop_scalar
-            b_angle = (180 - angle) / 2
-            straight_inner_dist = math.sin(angle) / (math.sin(b_angle) / 75)
-            x_change = straight_inner_dist * (math.acos(b_angle))
-            y_change = straight_inner_dist * (math.asin(b_angle))
-            return self.inner_start[0] + x_change, self.inner_start[1] + y_change
+            x_cord = 0 - self.inside_width / 2 + 75 * math.sin(angle)
+            y_cord = self.inside_width / 2 - 75 * math.cos(angle)
+            return x_cord, y_cord
 
 
 

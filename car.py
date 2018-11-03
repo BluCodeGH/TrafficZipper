@@ -19,6 +19,19 @@ class Car:
         return self.rail.fun(new_position or self.position)
 
     def get_interval(self, time):
+        """
+        This takes a single time argument.
+
+        This returns a bunch of internal information about the *start of the acceleration range the car is in at a given time*.
+        This does *not* account for the car's position within the acceleration range.
+        It returns: 
+            the index of the range (or None if the car has passed out of all ranges, in which case it is assumed to have
+                zero acceleration)
+            the distance covered by the range
+            the speed the car starts the range with
+            the acceleration during the range
+            the time the car *has left in the range*
+        """
         scalar = 0
         speed = self.start_speed
         found = False
@@ -46,6 +59,9 @@ class Car:
         return None
 
     def get_pos(self, time):
+        """
+        This function takes a time and returns the scalar value of the car along its rail at that time.
+        """
         i, d, speed, a, time = self.get_interval(time)
         if i is None:
             scalar = self.accells[-1][0]
@@ -58,6 +74,10 @@ class Car:
         return scalar
 
     def get_time(self):
+        """
+        This function returns the time at which the car has completed all of its acceleration ranges, and is 
+        assumed to be cruising at a constant velocity after leaving the intersection.
+        """
         time = 0
         speed = 0
         oldD = 0
@@ -73,4 +93,7 @@ class Car:
         return time
 
     def copy(self):
+        """
+        This copies a car
+        """
         return Car(self.start_speed, self.rail, self.priority, self.accells.copy())
