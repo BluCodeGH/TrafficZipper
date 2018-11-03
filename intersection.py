@@ -9,7 +9,6 @@ class Intersection:
     def __init__(self, cars: List[Car], rails: List[Rail]):
         self.cars = cars
         self.rails = rails
-        self.I = {}
         self.collisions_dict = {}
         self.init_collisions_dict()
 
@@ -24,31 +23,48 @@ class Intersection:
                 if rail_a != rail_b:
                     self.collisions_dict[rail_a][rail_b] = None
 
-    def update(self, cars):
+    def update(self):
         """
         iterate and check with all other cars, handle() at first coll.
         """
-        for car_1 in self.cars:
-            for car_2 in self.cars:
-                if car_1 != car_2 and self.collision(car_1, car_2):
-                    pass
+        for i in range(len(self.cars) - 1):
+            for j in range(i + 1, len(self.cars)):
+                car_1 = self.cars[i]
+                car_2 = self.cars[j]
+                collision_time = self.collision(car_1, car_2)
+                if collision_time >= 0:
+                    _, _, speed_1, acc_1, time_1 = car_1.get_interval(collision_time)
+                    _, _, speed_2, acc_2, time_2 = car_2.get_interval(collision_time)
+
+                    # Get the speeds that each car will have at the time they collide.
+                    speed_1_coll_time = speed_1 + acc_1 * time_1
+                    speed_2_coll_time = speed_2 + acc_2 * time_2
+                    if speed_2_coll_time < speed_1_coll_time:
+                        # car_1 has the greater speed at the collision time, so it should be the accelerator.
+                        self.handle(i, j, collision_time)
+                    else:
+                        # car_2 has the greater speed at the collision time, so it should be the accelerator.
+                        self.handle(j, i, collision_time)
+                    break
 
     def handle(self, carA, carD, time):
         """
         This function stops two cars from colliding.
         carA is the car to accelerate
-        carD is the car to decelerator
+        carD is the car to decelerate
         time is the time of the collision
 
-        It works by first changing carAs last acceleration (before the collision) so it arrives on the intersection at the time.
+        It works by first changing carAs last acceleration (before the collision) so it arrives on the intersection at
+        the time.
         Next it iteratively slows carD until they do not hit at the intersection.
 
         TODO:
         This should then call update with the changed cars in order to propagate the changes.
-        It should return the total amount of speed changes so its parent update can optimize which car slows down / speeds up.
+        It should return the total amount of speed changes so its parent update can optimize which car slows
+        down / speeds up.
         """
-        a_dist = 60  # self.I[carA.rail][carD.rail]
-        d_dist = 60  # self.I[carD.rail][carA.rail]
+        a_dist = 60  # self.collisions_dict[carA.rail][carD.rail]
+        d_dist = 60  # self.collisions_dict[carD.rail][carA.rail]
         i, dist, speed, a, dt = carA.get_interval(time)
         a2 = 2 * (a_dist - speed * dt) / (dt ** 2)
         newA = carA.copy()
@@ -67,20 +83,20 @@ class Intersection:
 
         print(newD.accells, newA.accells)
 
-    def collision(self, carA, carB):
+    def collision(self, carA: Car, carB: Car):
         """
         This returns whether or not two cars are going to collide.
         """
         time = min(carA.get_time(), carB.get_time())
         t = 0
         while t <= time:
-            a = carA.rail(carA.get_pos(t))
-            b = carB.rail(carB.get_pos(t))
-            if math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) < 10:
+            a = carA.get_location()
+            b = carB.get_location()
+            if distance(a, b) < carA.radius + carB.radius:
                 print(a, b)
-                return True
+                return t
             t += 0.1
-        return False
+        return -1
 
 
 def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
