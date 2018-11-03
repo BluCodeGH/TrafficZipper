@@ -32,6 +32,7 @@ class Intersection:
                 car_1 = self.cars[i]
                 car_2 = self.cars[j]
                 collision_time = self.collision(car_1, car_2)
+                print(collision_time)
                 if collision_time >= 0:
                     _, _, speed_1, acc_1, time_1 = car_1.get_interval(collision_time)
                     _, _, speed_2, acc_2, time_2 = car_2.get_interval(collision_time)
@@ -76,6 +77,7 @@ class Intersection:
             a2 += 0.1
             newA.accells[i] = (newA.accells[i][0], a2)
 
+
         newD = carD.copy()
         i, dist, speed, a, dt = newD.get_interval(time)
         a2 = a
@@ -83,12 +85,12 @@ class Intersection:
             print(a2)
             newD.accells[i] = (newD.accells[i][0], a2)
             print(newD.get_pos(time))
-            if not self.collision(newD, newA) == -1:
+            if self.collision(newD, newA) == -1:
                 break
             a2 -= 0.1
 
         self.cars[carAi] = newA
-        self.cars[carBi] = newB
+        self.cars[carDi] = newD
         self.update()
 
     def collision(self, carA: Car, carB: Car):
@@ -98,10 +100,9 @@ class Intersection:
         time = min(carA.get_time(), carB.get_time())
         t = 0
         while t <= time:
-            a = carA.get_location()
-            b = carB.get_location()
+            a = carA.get_location(t)
+            b = carB.get_location(t)
             if distance(a, b) < carA.radius + carB.radius:
-                print(a, b)
                 return t
             t += 0.1
         return -1
