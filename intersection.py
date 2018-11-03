@@ -22,17 +22,18 @@ class Intersection:
             for rail_b in self.rails:
                 if rail_a != rail_b:
                     self.collisions_dict[rail_a][rail_b] = None
-
+        
         for rail_a in self.rails:
             for rail_b in self.rails:
-                if self.collisions_dict[rail_a][rail_b]:
-                    # We have already filled in this dictionary entry.
-                    continue
-                scalar_a, scalar_b = self.find_intersection(rail_a, rail_b)
-                if scalar_a >= 0:
-                    # If the rails don't collide, the dictionary value stays at 0.
-                    self.collisions_dict[rail_a][rail_b] = scalar_a
-                    self.collisions_dict[rail_b][rail_a] = scalar_b
+                if rail_a != rail_b:
+                    if self.collisions_dict[rail_a][rail_b]:
+                        # We have already filled in this dictionary entry.
+                        continue
+                    scalar_a, scalar_b = self.find_intersection(rail_a, rail_b)
+                    if scalar_a >= 0:
+                        # If the rails don't collide, the dictionary value stays at 0.
+                        self.collisions_dict[rail_a][rail_b] = scalar_a
+                        self.collisions_dict[rail_b][rail_a] = scalar_b
 
     def update(self):
         print(self.cars)
@@ -49,6 +50,8 @@ class Intersection:
                     collision_car_indices.append(j)
 
             collision_car_indices.sort(key=lambda x: self.collisions_dict[self.cars[i].rail][self.cars[x].rail])
+
+            print("C", collision_car_indices)
 
             for j in collision_car_indices:
                 car_2 = self.cars[j]
@@ -93,24 +96,20 @@ class Intersection:
         d_dist = 60  # self.I[carD.rail][carA.rail]
 
         i, dist, speed, a, dt = carA.get_interval(time)
-        print(carA.get_interval(time))
         a2 = a
         newA = carA.copy()
+        print(max_acceleration)
         while a2 < max_acceleration and self.collision(carD, newA) != -1:
             a2 += 0.01
             newA.accells[i] = (newA.accells[i][0], a2)
-        print("New a: ", a2)
 
 
         newD = carD.copy()
         i, dist, speed, a, dt = newD.get_interval(time)
         a2 = a
         while a2 >= -max_acceleration:
-            print(a2)
             newD.accells[i] = (newD.accells[i][0], a2)
-            print(newD.get_pos(time))
             if self.collision(newD, newA) == -1:
-                print("Found it")
                 break
             a2 -= 0.001
 
@@ -133,7 +132,6 @@ class Intersection:
             if distance(a, b) < carA.radius + carB.radius:
                 return t
             t += 0.1
-        print("All good")
         return -1
 
     def find_intersection(self, rail_1, rail_2):
@@ -149,10 +147,10 @@ class Intersection:
         for step_1 in range(rail_1.total_distance):
             for step_2 in range(rail_2.total_distance):
                 rail_dist = distance(rail_1.get(step_1), rail_2.get(step_2))
-                if min_dist is not None or rail_dist < min_dist:
+                if min_dist is None or rail_dist < min_dist:
                     min_dist = rail_dist
                     min_steps = step_1, step_2
-        return min_steps if min_dist < 0.3 else -1, -1
+        return min_steps if min_dist < 0.3 else (-1, -1)
 
 
 def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
