@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Tuple
 import math
+
 from car import Car
 from rail import Rail
 
@@ -8,6 +9,7 @@ class Intersection:
     def __init__(self, cars: List[Car], rails: List[Rail]):
         self.cars = cars
         self.rails = rails
+        self.I = {}
         self.collisions_dict = {}
         self.init_collisions_dict()
 
@@ -22,47 +24,56 @@ class Intersection:
                 if rail_a != rail_b:
                     self.collisions_dict[rail_a][rail_b] = None
 
-    def collision(self, index_1: int, index_2: int):
+    def update(self, cars):
         """
-        Returns whether or not self.cars[index_1] and self.cars[index_2] will intersect.
-
-        :param index_1: The index of the first car.
-        :param index_2: The index of the second car.
-        :return: True iff self.cars[index_1] and self.cars[index_2] will intersect.
+        iterate and check with all other cars, handle() at first coll.
         """
-        car_1 = self.cars[index_1]
-        car_2 = self.cars[index_2]
-        car_1_time_to_end = car_1.speed * (car_1.rail.max_position - car_1.position)
-        car_2_time_to_end = car_2.speed * (car_2.rail.max_position - car_2.position)
-        if car_1_time_to_end > car_2_time_to_end:
-            self.step_through_time(car_1, car_2)
-        else:
-            self.step_through_time(car_2, car_1)
+        for car_1 in self.cars:
+            for car_2 in self.cars:
+                if car_1 != car_2 and self.collision(car_1, car_2):
+                    pass
 
-    def step_through_time(self, car_1, car_2):
+    def handle(self, carA, carD, time):
         """
-        Steps through time and figures out whether the two given cars will collide.
-
-        :param car_1:
-        :param car_2:
-        :return: True iff the cars will eventually collide, if their speeds don't change.
+        get dists to intersect for cars
+        update cA accel to be centered
+        update cB accel to never touch cA
+        call update with new cars
         """
-        prev_dist_between_cars = None
+        a_dist = 60  # self.I[carA.rail][carD.rail]
+        d_dist = 60  # self.I[carD.rail][carA.rail]
+        i, dist, speed, a, dt = carA.get_interval(time)
+        a2 = 2 * (a_dist - speed * dt) / (dt ** 2)
+        newA = carA.copy()
+        newA.accells[i] = (newA.accells[i][0], a2)
 
-        # Loop until car_1 is at the end of its rail.
-        for time_ticks in range(car_1.speed * (car_1.rail.max_position - car_1.position)):
-            car_1_pos = car_1.get_location(car_1.position + car_1.speed * time_ticks)
-            car_2_pos = car_2.get_location(car_2.position + car_2.speed * time_ticks)
-            curr_dist_between_cars = self.distance(car_1_pos, car_2_pos)
-            if curr_dist_between_cars < car_1.radius + car_2.radius:
-                return True
-            # Break if the distance between the cars is increasing.
-            if prev_dist_between_cars and prev_dist_between_cars < curr_dist_between_cars:
+        newD = carD.copy()
+        i, dist, speed, a, dt = newD.get_interval(time)
+        a2 = a
+        while a2 >= -5:
+            print(a2)
+            newD.accells[i] = (newD.accells[i][0], a2)
+            print(newD.get_pos(time))
+            if not self.collision(newD, newA):
                 break
-            prev_dist_between_cars = curr_dist_between_cars
+            a2 -= 0.1
+
+        print(newD.accells, newA.accells)
+
+    def collision(self, carA, carB):
+        time = min(carA.get_time(), carB.get_time())
+        t = 0
+        while t <= time:
+            a = carA.rail(carA.get_pos(t))
+            b = carB.rail(carB.get_pos(t))
+            if math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) < 10:
+                print(a, b)
+                return True
+            t += 0.1
         return False
 
-def distance(pos_1, pos_2):
+
+def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
     """
     Returns the distance between two (x, y) locations.
     """
