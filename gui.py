@@ -20,7 +20,7 @@ class IntersectionView:
                  intersection: Intersection,
                  window_size: Tuple[int, int],
                  x_lanes: int,
-                 y_lanes: int):
+                 y_lanes: int) -> None:
         self.intersection = intersection
         self.width, self.height = window_size
         self.x_lanes = x_lanes
@@ -370,6 +370,10 @@ class SetupView(IntersectionView):
         self.centre_top_bound = self.centre_y - centre_rect_height / 2
         self.centre_bottom_bound = self.centre_y + centre_rect_height / 2
 
+        self.current_rail: Optional[Rail] = None
+
+        self.done = False  # program will exit when set to True
+
     def show_car_hint(self, mousex: int, mousey: int):
         self.car_hint_showing = False
         self.rail_hint_showing = False
@@ -485,6 +489,7 @@ class SetupView(IntersectionView):
                                         y = -y
                                         pointlist.append((x + self.width/2, y + self.height/2))
                                     pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+                                    self.current_rail = rail
         elif mousex >= self.centre_right_bound:
             # right side of lines
             if self.x_lanes % 2 == 0:
@@ -512,6 +517,7 @@ class SetupView(IntersectionView):
                                         y = -y
                                         pointlist.append((x + self.width/2, y + self.height/2))
                                     pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+                                    self.current_rail = rail
         elif mousey <= self.centre_top_bound:
             # top side of lines
             if self.y_lanes % 2 == 0:
@@ -539,6 +545,7 @@ class SetupView(IntersectionView):
                                         y = -y
                                         pointlist.append((x + self.width/2, y + self.height/2))
                                     pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+                                    self.current_rail = rail
         elif mousey >= self.centre_bottom_bound:
             # right side of lines
             if self.y_lanes % 2 == 0:
@@ -566,10 +573,13 @@ class SetupView(IntersectionView):
                                         y = -y
                                         pointlist.append((x + self.width/2, y + self.height/2))
                                     pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+                                    self.current_rail = rail
 
     def handle_start_button(self, event):
         if event.pos[0] > self.width - 100 and event.pos[1] > self.height - 100:
-            sys.exit()
+            self.done = True
+            #pygame.quit()
+            #sys.exit()
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -580,6 +590,7 @@ class SetupView(IntersectionView):
                 self.mode = 1
             if self.rail_hint_showing:
                 self.mode = 0
+                self.cars.append(Car(1.0, self.current_rail, 0))
             self.handle_start_button(event)
 
     def _check_rail(self, rail: Rail) -> bool:

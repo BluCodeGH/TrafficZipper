@@ -31,11 +31,22 @@ for i in range(4):
     cars.append(Car(1.0, leftrail, 1))
     cars.append(Car(1.0, rightrail, 1))
     cars.append(Car(1.0, straightrail, 1))
-intersection1 = Intersection(cars, rails)
+intersection1 = Intersection([], rails)
 
-view = SetupView(intersection=intersection1,
-                  window_size=(800, 600),
-                  x_lanes=2,
-                  y_lanes=2)
+setup_view = SetupView(intersection=intersection1,
+                       window_size=(800, 600),
+                       x_lanes=2,
+                       y_lanes=2)
+while not setup_view.done:
+    setup_view.tick()
+
+kars = setup_view.cars
+intersection1.cars = kars
+
+real_actual_view = ZipperView(intersection=intersection1,
+                              window_size=(800, 600),
+                              x_lanes=2,
+                              y_lanes=2)
+
 while 1:
-    view.tick()
+    real_actual_view.tick()
