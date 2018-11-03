@@ -6,6 +6,7 @@ import pygame
 
 from intersection import Intersection
 from car import Car
+from rail import Rail
 
 
 class IntersectionView:
@@ -341,9 +342,14 @@ class SetupView(IntersectionView):
         # self.car_img_translucent.set_alpha(128)
         self.car_rect = self.car_img.get_rect()
 
+        # mode
+        # 0 - place initial car position
+        # 1 - place car end position
         self.mode = 0
+
         self.cars: List[Car] = []
         self.car_hint_showing = False
+        self.rail_hint_showing = False
 
         # the "permanent hint" is the thing that stays on the screen
         # after you click a lane
@@ -365,6 +371,7 @@ class SetupView(IntersectionView):
 
     def show_car_hint(self, mousex: int, mousey: int):
         self.car_hint_showing = False
+        self.rail_hint_showing = False
 
         if mousex <= self.centre_left_bound:
             # left side of lines
@@ -445,12 +452,142 @@ class SetupView(IntersectionView):
                         self.current_lane_bound_lower = lane_bound_right
                         self.current_lane_area = self.centre_bottom_bound
 
+    def show_rail_hint(self, mousex: int, mousey: int):
+        self.rail_hint_showing = False
+        self.car_hint_showing = False
+
+        if mousex <= self.centre_left_bound:
+            # left side of lines
+            if self.x_lanes % 2 == 0:
+                # even number of lanes
+                # only check top
+                for lane in range(self.x_lanes // 2):
+                    lane_bound_upper = self.centre_y - self.LANE_WIDTH * lane
+                    lane_bound_lower = self.centre_y - self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_upper > mousey >= lane_bound_lower:
+                        # update stuff
+                        self.rail_hint_showing = True
+                        self.current_rail_lane_bound_upper = lane_bound_upper
+                        self.current_rail_lane_bound_lower = lane_bound_lower
+                        self.current_rail_lane_area = self.centre_left_bound
+
+                        # show coloured rail
+                        for rail in self.intersection.rails:
+                            if self._check_rail(rail):
+                                endx, endy = rail.get(1000)
+                                endy = -endy
+                                #print(endy + self.height/2, lane_bound_upper, lane_bound_lower)
+                                if lane_bound_upper > (endy + self.height/2) >= lane_bound_lower:
+                                    pointlist = []
+                                    for i in range(75, 1000):
+                                        x, y = rail.get(i)
+                                        y = -y
+                                        pointlist.append((x + self.width/2, y + self.height/2))
+                                    pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+        elif mousex >= self.centre_right_bound:
+            # right side of lines
+            if self.x_lanes % 2 == 0:
+                # even number of lanes
+                # only check bottom
+                for lane in range(self.x_lanes // 2):
+                    lane_bound_upper = self.centre_y + self.LANE_WIDTH * lane
+                    lane_bound_lower = self.centre_y + self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_upper <= mousey < lane_bound_lower:
+                        # update stuff
+                        self.rail_hint_showing = True
+                        self.current_rail_lane_bound_upper = lane_bound_upper
+                        self.current_rail_lane_bound_lower = lane_bound_lower
+                        self.current_rail_lane_area = self.centre_right_bound
+
+                        # show coloured rail
+                        for rail in self.intersection.rails:
+                            if self._check_rail(rail):
+                                endx, endy = rail.get(1000)
+                                endy = -endy
+                                if lane_bound_upper <= (endy + self.height/2) < lane_bound_lower:
+                                    pointlist = []
+                                    for i in range(75, 1000):
+                                        x, y = rail.get(i)
+                                        y = -y
+                                        pointlist.append((x + self.width/2, y + self.height/2))
+                                    pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+        elif mousey <= self.centre_top_bound:
+            # top side of lines
+            if self.y_lanes % 2 == 0:
+                # even number of lanes
+                # only check right
+                for lane in range(self.y_lanes // 2):
+                    lane_bound_left = self.centre_x + self.LANE_WIDTH * lane
+                    lane_bound_right = self.centre_x + self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_left <= mousex < lane_bound_right:
+                        # update stuff
+                        self.rail_hint_showing = True
+                        self.current_rail_lane_bound_upper = lane_bound_left
+                        self.current_rail_lane_bound_lower = lane_bound_right
+                        self.current_rail_lane_area = self.centre_top_bound
+
+                        # show coloured rail
+                        for rail in self.intersection.rails:
+                            if self._check_rail(rail):
+                                endx, endy = rail.get(1000)
+                                endy = -endy
+                                if lane_bound_left <= (endx + self.width/2) < lane_bound_right:
+                                    pointlist = []
+                                    for i in range(75, 1000):
+                                        x, y = rail.get(i)
+                                        y = -y
+                                        pointlist.append((x + self.width/2, y + self.height/2))
+                                    pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+        elif mousey >= self.centre_bottom_bound:
+            # right side of lines
+            if self.y_lanes % 2 == 0:
+                # even number of lanes
+                # only check left
+                for lane in range(self.x_lanes // 2):
+                    lane_bound_left = self.centre_x - self.LANE_WIDTH * lane
+                    lane_bound_right = self.centre_x - self.LANE_WIDTH * (lane + 1)
+                    if lane_bound_left > mousex >= lane_bound_right:
+                        # update stuff
+                        self.rail_hint_showing = True
+                        self.current_rail_lane_bound_upper = lane_bound_left
+                        self.current_rail_lane_bound_lower = lane_bound_right
+                        self.current_rail_lane_area = self.centre_right_bound
+
+                        # show coloured rail
+                        for rail in self.intersection.rails:
+                            if self._check_rail(rail):
+                                endx, endy = rail.get(1000)
+                                endy = -endy
+                                if lane_bound_left > (endx + self.width/2) >= lane_bound_right:
+                                    pointlist = []
+                                    for i in range(75, 1000):
+                                        x, y = rail.get(i)
+                                        y = -y
+                                        pointlist.append((x + self.width/2, y + self.height/2))
+                                    pygame.draw.lines(self.screen, (0xe6, 0x4a, 0x19), False, pointlist, 5)
+
     def handle_event(self, event):
         super().handle_event(event)
         #if event.type == pygame.MOUSEMOTION:
         #    self.show_car_hint(*event.pos)
-        if event.type == pygame.MOUSEBUTTONDOWN and self.car_hint_showing:
-            self.mode = 1
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            print(self.car_hint_showing, self.rail_hint_showing)
+            if self.car_hint_showing:
+                self.mode = 1
+            if self.rail_hint_showing:
+                self.mode = 0
+
+    def _check_rail(self, rail: Rail) -> bool:
+        x, y = rail.get(0)
+        y = -y
+        return ((self.current_lane_area == self.centre_left_bound
+                        and self.current_lane_bound_upper <= (y + self.height/2) < self.current_lane_bound_lower)
+                    or (self.current_lane_area == self.centre_right_bound
+                        and self.current_lane_bound_upper > (y + self.height/2) >= self.current_lane_bound_lower)
+                    or (self.current_lane_area == self.centre_top_bound
+                        and self.current_lane_bound_upper > (x + self.width/2) >= self.current_lane_bound_lower)
+                    or (self.current_lane_area == self.centre_bottom_bound
+                        and self.current_lane_bound_upper <= (x + self.width/2) < self.current_lane_bound_lower))
 
     def do_updates(self):
         super().do_updates()
@@ -469,21 +606,13 @@ class SetupView(IntersectionView):
 
             # draw rails
             for rail in self.intersection.rails:
-                x, y = rail.get(0)
-                y = -y
-                #print(self.current_lane_area, self.centre_left_bound, self.current_lane_bound_lower, self.current_lane_bound_upper, (y + self.height/2))
-
-                if ((self.current_lane_area == self.centre_left_bound
-                        and self.current_lane_bound_upper <= (y + self.height/2) < self.current_lane_bound_lower)
-                    or (self.current_lane_area == self.centre_right_bound
-                        and self.current_lane_bound_upper > (y + self.height/2) >= self.current_lane_bound_lower)
-                    or (self.current_lane_area == self.centre_top_bound
-                        and self.current_lane_bound_upper > (x + self.width/2) >= self.current_lane_bound_lower)
-                    or (self.current_lane_area == self.centre_bottom_bound
-                        and self.current_lane_bound_upper <= (x + self.width/2) < self.current_lane_bound_lower)):
+                if self._check_rail(rail):
                     pointlist = []
                     for i in range(75, 1000):
                         x, y = rail.get(i)
                         y = -y
                         pointlist.append((x + self.width/2, y + self.height/2))
                     pygame.draw.lines(self.screen, (0xbb, 0xbb, 0xbb), False, pointlist, 5)
+
+            # place end position
+            self.show_rail_hint(mousex, mousey)
