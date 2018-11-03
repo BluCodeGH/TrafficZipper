@@ -99,3 +99,11 @@ class StraightRail(Rail):
         x_cord = self.total_len * scalar_prop - self.total_len / 2
         y_cord = -25
         return self.applyTransform(x_cord, y_cord, self.transform)
+
+if __name__ == '__main__':
+    rail_1 = StraightRail(0)
+    rail_2 = StraightRail(1)
+    for step_1 in range(rail_1.max_position):
+        for step_2 in range(rail_2.max_position):
+            if rail_1.get(step_1) == rail_2.get(step_2):
+                print(rail_1.get(float(step_1)), rail_2.get(float(step_2)))
