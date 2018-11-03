@@ -35,10 +35,17 @@ class Intersection:
 
     def handle(self, carA, carD, time):
         """
-        get dists to intersect for cars
-        update cA accel to be centered
-        update cB accel to never touch cA
-        call update with new cars
+        This function stops two cars from colliding.
+        carA is the car to accelerate
+        carD is the car to decelerator
+        time is the time of the collision
+
+        It works by first changing carAs last acceleration (before the collision) so it arrives on the intersection at the time.
+        Next it iteratively slows carD until they do not hit at the intersection.
+
+        TODO:
+        This should then call update with the changed cars in order to propagate the changes.
+        It should return the total amount of speed changes so its parent update can optimize which car slows down / speeds up.
         """
         a_dist = 60  # self.I[carA.rail][carD.rail]
         d_dist = 60  # self.I[carD.rail][carA.rail]
@@ -61,6 +68,9 @@ class Intersection:
         print(newD.accells, newA.accells)
 
     def collision(self, carA, carB):
+        """
+        This returns whether or not two cars are going to collide.
+        """
         time = min(carA.get_time(), carB.get_time())
         t = 0
         while t <= time:
