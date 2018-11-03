@@ -21,6 +21,7 @@ class LeftRail(Rail):
         self.cutoffs = [(1 - self.curve_scalar_prop) * 1000 / 2, 1000 - (1 - self.curve_scalar_prop) * 1000 / 2]
         self.inner_start = (-25, -50)
         self.transform = transform
+        self.max_position = 800
 
     def applyTransform(self, x, y, transform):
         for i in range(transform):

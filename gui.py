@@ -12,7 +12,7 @@ class IntersectionView:
     BACK_COLOUR = 0x2e, 0x7d, 0x32
     BORDER_COLOUR = 0, 0, 0
     ASPHALT_COLOUR = 0xcc, 0xcc, 0xcc
-    LANE_WIDTH = 60
+    LANE_WIDTH = 50
     BORDER_WIDTH = 5
 
     def __init__(self, *,
@@ -271,7 +271,7 @@ class IntersectionView:
 
     def tick(self):
         # delay
-        self.clock.tick(4)
+        #self.clock.tick(10)
 
         self.do_updates()
 
@@ -295,7 +295,8 @@ class ZipperView(IntersectionView):
         for car in cars:
             rail = car.rail
             scalar = car.get_pos(time)
-            x, y = rail.fun(scalar)
+            x, y = rail.get(scalar)
+            y = -y
 
             # rotation
             rise = x - self.lastx
@@ -306,11 +307,11 @@ class ZipperView(IntersectionView):
                 angle = math.degrees(math.atan(rise / run))
                 new_img = pygame.transform.rotate(self.car_img, angle-90)
             elif rise:
-                # no x change so we're going vertically
-                new_img = pygame.transform.rotate(self.car_img, -90)
-            else:
                 # no change at all - don't transform i guess
                 new_img = self.car_img
+            else:
+                # no x change so we're going vertically
+                new_img = pygame.transform.rotate(self.car_img, -90)
 
             # new transformed rect
             new_rect = new_img.get_rect().copy()
