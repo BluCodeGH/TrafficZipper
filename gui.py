@@ -1,6 +1,6 @@
 import math
 import sys
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Optional
 
 import pygame
 
@@ -336,83 +336,154 @@ class SetupView(IntersectionView):
         pygame.display.set_caption("Setup")
 
         self.car_img = pygame.image.load("assets/car.png")
-        self.car_img_translucent = self.car_img.copy()
-        self.car_img_translucent.set_alpha(0.5)
+        self.car_img2 = pygame.image.load("assets/car2.png")
+        # self.car_img_translucent = self.car_img.copy()
+        # self.car_img_translucent.set_alpha(128)
         self.car_rect = self.car_img.get_rect()
 
-    def show_car_hint(self, mousex: int, mousey: int):
-        x_lines = self.x_lanes + 1
-        y_lines = self.y_lanes + 1
+        self.mode = 0
+        self.cars: List[Car] = []
+        self.car_hint_showing = False
+
+        # the "permanent hint" is the thing that stays on the screen
+        # after you click a lane
+        self.car_permanent_hint = self.car_img.get_rect()
+        self.car_permanent_hint_rotated = False
+
+        self.current_lane_bound_upper = 0
+        self.current_lane_bound_lower = 0
+        self.current_lane_area = 0
+
         centre_rect_width = self.y_lanes * self.LANE_WIDTH
         centre_rect_height = self.x_lanes * self.LANE_WIDTH
-        centre_x = self.width / 2
-        centre_y = self.height / 2
-        centre_left_bound = centre_x - centre_rect_width / 2
-        centre_right_bound = centre_x + centre_rect_width / 2
-        centre_top_bound = centre_y - centre_rect_height / 2
-        centre_bottom_bound = centre_y + centre_rect_height / 2
+        self.centre_x = self.width / 2
+        self.centre_y = self.height / 2
+        self.centre_left_bound = self.centre_x - centre_rect_width / 2
+        self.centre_right_bound = self.centre_x + centre_rect_width / 2
+        self.centre_top_bound = self.centre_y - centre_rect_height / 2
+        self.centre_bottom_bound = self.centre_y + centre_rect_height / 2
 
-        if mousex <= centre_left_bound:
+    def show_car_hint(self, mousex: int, mousey: int):
+        self.car_hint_showing = False
+
+        if mousex <= self.centre_left_bound:
             # left side of lines
             if self.x_lanes % 2 == 0:
                 # even number of lanes
                 # only check bottom
                 for lane in range(self.x_lanes // 2):
-                    lane_bound_upper = centre_y + self.LANE_WIDTH * lane
-                    lane_bound_lower = centre_y + self.LANE_WIDTH * (lane + 1)
+                    lane_bound_upper = self.centre_y + self.LANE_WIDTH * lane
+                    lane_bound_lower = self.centre_y + self.LANE_WIDTH * (lane + 1)
                     if lane_bound_upper <= mousey < lane_bound_lower:
-                        new_rect = self.car_img_translucent.get_rect().copy()
-                        new_rect.center = (centre_left_bound - self.CAR_HINT_MARGIN,
-                                           (lane_bound_lower + lane_bound_upper) / 2)
-                        self.screen.blit(self.car_img_translucent, new_rect)
-        elif mousex >= centre_right_bound:
+                        self.car_hint_showing = True
+                        new_rect = self.car_img2.get_rect().copy()
+                        self.car_permanent_hint.center = new_rect.center = \
+                            (self.centre_left_bound - self.CAR_HINT_MARGIN,
+                             (lane_bound_lower + lane_bound_upper) / 2)
+                        self.car_permanent_hint_rotated = False
+                        self.screen.blit(self.car_img2, new_rect)
+                        self.current_lane_bound_upper = lane_bound_upper
+                        self.current_lane_bound_lower = lane_bound_lower
+                        self.current_lane_area = self.centre_left_bound
+        elif mousex >= self.centre_right_bound:
             # right side of lines
             if self.x_lanes % 2 == 0:
                 # even number of lanes
                 # only check top
                 for lane in range(self.x_lanes // 2):
-                    lane_bound_upper = centre_y - self.LANE_WIDTH * lane
-                    lane_bound_lower = centre_y - self.LANE_WIDTH * (lane + 1)
+                    lane_bound_upper = self.centre_y - self.LANE_WIDTH * lane
+                    lane_bound_lower = self.centre_y - self.LANE_WIDTH * (lane + 1)
                     if lane_bound_upper > mousey >= lane_bound_lower:
-                        new_rect = self.car_img_translucent.get_rect().copy()
-                        new_rect.center = (centre_right_bound + self.CAR_HINT_MARGIN,
-                                           (lane_bound_lower + lane_bound_upper) / 2)
-                        self.screen.blit(self.car_img_translucent, new_rect)
-        elif mousey <= centre_top_bound:
+                        self.car_hint_showing = True
+                        new_rect = self.car_img2.get_rect().copy()
+                        self.car_permanent_hint.center = new_rect.center = \
+                            (self.centre_right_bound + self.CAR_HINT_MARGIN,
+                             (lane_bound_lower + lane_bound_upper) / 2)
+                        self.car_permanent_hint_rotated = False
+                        self.screen.blit(self.car_img2, new_rect)
+                        self.current_lane_bound_upper = lane_bound_upper
+                        self.current_lane_bound_lower = lane_bound_lower
+                        self.current_lane_area = self.centre_right_bound
+        elif mousey <= self.centre_top_bound:
             # top side of lines
             if self.y_lanes % 2 == 0:
                 # even number of lanes
                 # only check left
                 for lane in range(self.y_lanes // 2):
-                    lane_bound_left = centre_x - self.LANE_WIDTH * lane
-                    lane_bound_right = centre_x - self.LANE_WIDTH * (lane + 1)
+                    lane_bound_left = self.centre_x - self.LANE_WIDTH * lane
+                    lane_bound_right = self.centre_x - self.LANE_WIDTH * (lane + 1)
                     if lane_bound_left > mousex >= lane_bound_right:
-                        new_img = pygame.transform.rotate(self.car_img_translucent, -90)
+                        self.car_hint_showing = True
+                        new_img = pygame.transform.rotate(self.car_img2, -90)
                         new_rect = new_img.get_rect()
-                        new_rect.center = ((lane_bound_left + lane_bound_right) / 2,
-                                           centre_top_bound - self.CAR_HINT_MARGIN)
+                        self.car_permanent_hint.center = new_rect.center = \
+                            ((lane_bound_left + lane_bound_right) / 2,
+                             self.centre_top_bound - self.CAR_HINT_MARGIN)
+                        self.car_permanent_hint_rotated = True
                         self.screen.blit(new_img, new_rect)
-        elif mousey >= centre_bottom_bound:
+                        self.current_lane_bound_upper = lane_bound_left
+                        self.current_lane_bound_lower = lane_bound_right
+                        self.current_lane_area = self.centre_top_bound
+        elif mousey >= self.centre_bottom_bound:
             # right side of lines
             if self.y_lanes % 2 == 0:
                 # even number of lanes
                 # only check right
                 for lane in range(self.x_lanes // 2):
-                    lane_bound_left = centre_x + self.LANE_WIDTH * lane
-                    lane_bound_right = centre_x + self.LANE_WIDTH * (lane + 1)
+                    lane_bound_left = self.centre_x + self.LANE_WIDTH * lane
+                    lane_bound_right = self.centre_x + self.LANE_WIDTH * (lane + 1)
                     if lane_bound_left <= mousex < lane_bound_right:
-                        new_img = pygame.transform.rotate(self.car_img_translucent, 90)
+                        self.car_hint_showing = True
+                        new_img = pygame.transform.rotate(self.car_img2, 90)
                         new_rect = new_img.get_rect()
-                        new_rect.center = ((lane_bound_left + lane_bound_right) / 2,
-                                           centre_bottom_bound + self.CAR_HINT_MARGIN)
+                        self.car_permanent_hint.center = new_rect.center = \
+                            ((lane_bound_left + lane_bound_right) / 2,
+                             self.centre_bottom_bound + self.CAR_HINT_MARGIN)
+                        self.car_permanent_hint_rotated = True
                         self.screen.blit(new_img, new_rect)
+                        self.current_lane_bound_upper = lane_bound_left
+                        self.current_lane_bound_lower = lane_bound_right
+                        self.current_lane_area = self.centre_bottom_bound
 
     def handle_event(self, event):
         super().handle_event(event)
         #if event.type == pygame.MOUSEMOTION:
         #    self.show_car_hint(*event.pos)
+        if event.type == pygame.MOUSEBUTTONDOWN and self.car_hint_showing:
+            self.mode = 1
 
     def do_updates(self):
         super().do_updates()
         mousex, mousey = pygame.mouse.get_pos()
-        self.show_car_hint(mousex, mousey)
+        if self.mode == 0:
+            self.show_car_hint(mousex, mousey)
+        elif self.mode == 1:
+            # make the car image stay on screen
+            new_img = self.car_img
+            new_rect = self.car_permanent_hint
+            if self.car_permanent_hint_rotated:
+                new_img = pygame.transform.rotate(new_img, 90)
+                new_rect = new_img.get_rect()
+                new_rect.center = self.car_permanent_hint.center
+            self.screen.blit(new_img, new_rect)
+
+            # draw rails
+            for rail in self.intersection.rails:
+                x, y = rail.get(0)
+                y = -y
+                #print(self.current_lane_area, self.centre_left_bound, self.current_lane_bound_lower, self.current_lane_bound_upper, (y + self.height/2))
+
+                if ((self.current_lane_area == self.centre_left_bound
+                        and self.current_lane_bound_upper <= (y + self.height/2) < self.current_lane_bound_lower)
+                    or (self.current_lane_area == self.centre_right_bound
+                        and self.current_lane_bound_upper > (y + self.height/2) >= self.current_lane_bound_lower)
+                    or (self.current_lane_area == self.centre_top_bound
+                        and self.current_lane_bound_upper > (x + self.width/2) >= self.current_lane_bound_lower)
+                    or (self.current_lane_area == self.centre_bottom_bound
+                        and self.current_lane_bound_upper <= (x + self.width/2) < self.current_lane_bound_lower)):
+                    pointlist = []
+                    for i in range(75, 1000):
+                        x, y = rail.get(i)
+                        y = -y
+                        pointlist.append((x + self.width/2, y + self.height/2))
+                    pygame.draw.lines(self.screen, (0xbb, 0xbb, 0xbb), False, pointlist, 5)
