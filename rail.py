@@ -3,8 +3,9 @@ import math
 
 
 class Rail:
-    def __init__(self, fun: Callable):
+    def __init__(self, fun: Callable, distance):
         self.fun = fun
+        self.total_distance = distance
 
     def get(self, position: float):
         return self.fun(position)
