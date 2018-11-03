@@ -81,3 +81,21 @@ class RightRail(Rail):
             y_cord = self.inside_width / 2 - 25 * math.cos(angle)
             return self.applyTransform(x_cord, y_cord, self.transform)
 
+
+class StraightRail(Rail):
+    def __init__(self, transform):
+        self.outside_len = 100
+        self.inside_width = 100
+        self.total_len = self.inside_width + self.outside_len
+        self.transform = transform
+
+    def applyTransform(self, x, y, transform):
+        for i in range(transform):
+            x, y = -1 * y, x
+        return x, y
+
+    def get(self, scalar):
+        scalar_prop = scalar / 1000
+        x_cord = self.total_len * scalar_prop - self.total_len / 2
+        y_cord = -25
+        return self.applyTransform(x_cord, y_cord, self.transform)
