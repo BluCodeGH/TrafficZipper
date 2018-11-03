@@ -3,6 +3,7 @@ from rail import Rail
 
 max_acceleration = 0.5
 
+
 class Car:
 
     def __init__(self, start_speed: float, rail: Rail, priority: int, accells=None):

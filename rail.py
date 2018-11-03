@@ -94,6 +94,7 @@ class StraightRail(Rail):
         y_cord = -25
         return self.applyTransform(x_cord, y_cord, self.transform)
 
+
 class LeftRail2(Rail):
     def __init__(self, transform):
         self.outside_len = 100
