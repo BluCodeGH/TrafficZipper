@@ -11,7 +11,7 @@ class Car:
         self.position = 0.0
         # Each element is a tuple containing the end position of the car (i.e. when the car changes its acceleration),
         # and the acceleration of the car during that interval.
-        self.accells = accells or []
+        self.accells = accells or [(0, 0)]
         self.priority = priority
         self.radius = 10   # TODO:  Change this if necessary
 
