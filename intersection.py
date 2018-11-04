@@ -82,9 +82,8 @@ class Intersection:
             #                               window_size=(800, 600),
             #                               x_lanes=2,
             #                               y_lanes=2)
-            # quit = False
-            # while not quit:
-            #     quit = real_actual_view.tick()
+            # while not real_actual_view.quitting:
+            #     real_actual_view.tick()
             res = self.firstCollision(cars)
             if res is None:
                 self.cars = cars
