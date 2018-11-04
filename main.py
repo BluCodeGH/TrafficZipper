@@ -18,8 +18,8 @@ intersection.update()
 
 setup_view = SetupView(intersection=intersection,
                        window_size=(800, 600),
-                       x_lanes=2,
-                       y_lanes=2)
+                       x_lanes=6,
+                       y_lanes=6)
 while not setup_view.done:
     setup_view.tick()
     if setup_view.quitting:
@@ -33,8 +33,8 @@ print(setup_view.lane_cars)
 
 real_actual_view = ZipperView(intersection=intersection2,
                               window_size=(800, 600),
-                              x_lanes=2,
-                              y_lanes=2)
+                              x_lanes=6,
+                              y_lanes=6)
 
 while not real_actual_view.quitting:
     real_actual_view.tick()

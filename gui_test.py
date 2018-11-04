@@ -43,8 +43,8 @@ intersection1.update()
 
 view = ZipperView(intersection=intersection1,
                               window_size=(800, 600),
-                              x_lanes=2,
-                              y_lanes=2)
+                              x_lanes=6,
+                              y_lanes=6)
 
 j = 0
 while not view.quitting:
@@ -53,7 +53,7 @@ while not view.quitting:
         if car.get_pos(view.time) > car.rail.total_distance:
             intersection1.cars.pop(i)
 
-    if random.randint(0, 100) < 9:
+    if random.randint(0, 100) < 100:
         randRail = random.randint(0, 11)
         car = Car(1, intersection1.rails[randRail], "CAR" + str(j), start_time=view.time)
         bad = False

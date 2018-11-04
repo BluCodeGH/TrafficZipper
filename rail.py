@@ -17,13 +17,13 @@ class LeftRail(Rail):
     name = "LeftRail"
 
     def __init__(self, transform):
-        self.outside_len = 100
-        self.inside_width = 100
-        self.curve_length = (2 * math.pi * 75) / 4
+        self.outside_len = 300
+        self.inside_width = 300
+        self.curve_length = (2 * math.pi * 175) / 4
         self.total_distance = self.outside_len * 2 + self.curve_length
 
-        self.cutoffs = [100, 100 + self.curve_length]
-        self.inner_start = (-25, -50)
+        self.cutoffs = [self.outside_len, self.outside_len + self.curve_length]
+        self.inner_start = (-150, -25)
         self.transform = transform
 
         self.cache = {}
@@ -48,8 +48,8 @@ class LeftRail(Rail):
         else:
             prop_dist = (scalar - self.cutoffs[0]) / self.curve_length
             angle = math.radians(90) * prop_dist
-            x_cord = 0 - self.inside_width / 2 + 75 * math.sin(angle)
-            y_cord = self.inside_width / 2 - 75 * math.cos(angle)
+            x_cord = 0 - self.inside_width / 2 + 175 * math.sin(angle)
+            y_cord = self.inside_width / 2 - 175 * math.cos(angle)
             r = self.applyTransform(x_cord, y_cord, self.transform)
         self.cache[scalar] = r
         return r
@@ -65,12 +65,12 @@ class RightRail(Rail):
     name = "RightRail"
 
     def __init__(self, transform):
-        self.outside_len = 100
-        self.inside_width = 100
+        self.outside_len = 300
+        self.inside_width = 300
         self.curve_length = (2 * math.pi * 25) / 4
         self.total_distance = self.outside_len * 2 + self.curve_length
-        self.cutoffs = [100, 100 + self.curve_length]
-        self.inner_start = (-25, -50)
+        self.cutoffs = [self.outside_len, self.outside_len + self.curve_length]
+        self.inner_start = (-125, -150)
         self.transform = transform
 
     def applyTransform(self, x, y, transform):
@@ -82,11 +82,13 @@ class RightRail(Rail):
         scalar = self.total_distance - scalar
         if scalar < self.cutoffs[0]:
             x_cord = 0 - (self.outside_len - scalar + self.inside_width / 2)
-            y_cord = 25
+            # 25
+            y_cord = 125
             return self.applyTransform(x_cord, y_cord, self.transform)
         elif scalar > self.cutoffs[1]:
             y_cord = scalar - self.cutoffs[1] + self.inside_width / 2
-            x_cord = -25
+            # -25
+            x_cord = -125
             return self.applyTransform(x_cord, y_cord, self.transform)
         else:
             prop_dist = (scalar - self.cutoffs[0]) / self.curve_length
@@ -106,8 +108,8 @@ class StraightRail(Rail):
     name = "StraightRail"
 
     def __init__(self, transform):
-        self.outside_len = 100
-        self.inside_width = 100
+        self.outside_len = 300
+        self.inside_width = 300
         self.total_distance = self.inside_width + self.outside_len * 2
         self.transform = transform
 
@@ -118,7 +120,8 @@ class StraightRail(Rail):
 
     def get(self, scalar):
         x_cord = scalar - self.total_distance / 2
-        y_cord = -25
+        # -25
+        y_cord = -75
         return self.applyTransform(x_cord, y_cord, self.transform)
 
     def __hash__(self):
