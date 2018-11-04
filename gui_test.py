@@ -20,18 +20,25 @@ intersection1 = Intersection([], rails)
 intersection1.update()
 print("Cf", intersection1.cars)
 
-setup_view = SetupView(intersection=intersection1,
-                       window_size=(800, 600),
-                       x_lanes=2,
-                       y_lanes=2)
-while not setup_view.done:
-    setup_view.tick()
+rails2 = [LeftRail(0), LeftRail(1), LeftRail(2)]
 
-kars = setup_view.cars
-intersection1.cars = kars
-print(setup_view.lane_cars)
+intersection2 = Intersection([
+  Car(1.0, rails2[0], 0, [(133, 1.0), (163, 0.1), (184, 0.1), (318, 0.1)]),
+  Car(1.0, rails2[1], 0, [(155, 0.1), (163, 0.1), (318, 0.1)]),
+  Car(1.0, rails2[2], 0, [(134, 0.2), (155, 0.1), (184, 0.1), (318, 0.1)]),], rails2)
 
-real_actual_view = ZipperView(intersection=intersection1,
+# setup_view = SetupView(intersection=intersection1,
+#                        window_size=(800, 600),
+#                        x_lanes=2,
+#                        y_lanes=2)
+# while not setup_view.done:
+#     setup_view.tick()
+
+# kars = setup_view.cars
+# intersection1.cars = kars
+# print(setup_view.lane_cars)
+
+real_actual_view = ZipperView(intersection=intersection2,
                               window_size=(800, 600),
                               x_lanes=2,
                               y_lanes=2)

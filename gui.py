@@ -9,6 +9,9 @@ from car import Car
 from rail import Rail
 
 
+FPS = 60
+
+
 # generic type for a lane
 # (upperbound, lowerbound, side)
 # side (lane[2]) is one of "U", "D", "L", "R"
@@ -278,7 +281,7 @@ class IntersectionView:
 
     def tick(self):
         # delay
-        self.clock.tick(30)
+        self.clock.tick(FPS)
 
         self.do_updates()
 
