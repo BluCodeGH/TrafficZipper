@@ -1,25 +1,61 @@
 import math
 from rail import Rail
 
-max_acceleration = 1
+max_acceleration = 0.5
 
 
 class Car:
-
-    def __init__(self, start_speed: float, rail: Rail, start_time=0, accells=None):
+    def __init__(self, start_speed: float, rail: Rail, priority: int, accells=None):
         self.start_speed = start_speed
         self.rail = rail
+        self.position = 0.0
         # Each element is a tuple containing the end position of the car (i.e. when the car changes its acceleration),
         # and the acceleration of the car during that interval.
-        self.accells = accells or [(self.rail.total_distance, 0.1)]
-        self.radius = 30   # TODO:  Change this if necessary
-        self.start_time = start_time
+        self.accells = accells or [(0, 0)]
+        self.priority = priority
+        self.radius = 3   # TODO:  Change this if necessary
+
+    def update(self, others):
+        for other in others:
+            collision_time = self.collision(self, other)
+            if collision_time >= 0:
+                print("Coll between", self, other)
+                _, _, speed_1, acc_1, time_1 = self.get_interval(collision_time)
+                _, _, speed_2, acc_2, time_2 = other.get_interval(collision_time)
+
+                # Get the speeds that each car will have at the time they collide.
+                speed_1_coll_time = speed_1 + acc_1 * time_1
+                speed_2_coll_time = speed_2 + acc_2 * time_2
+                if speed_2_coll_time >= speed_1_coll_time:
+                    # self has the greater speed at the collision time, so it should be the accelerator.
+                    self.handleAcc(other, collision_time)
+                else:
+                    # other has the greater speed at the collision time, so it should be the accelerator.
+                    other.handleAcc(self, collision_time)
+                return
+
+    def handleAcc(self, other, time):
+        
+
+    def collision(self, carB: Car):
+        """
+        This returns whether or not two cars are going to collide.
+        """
+        time = min(self.get_time(), carB.get_time())
+        t = 0
+        while t <= time:
+            a = self.get_location(t)
+            b = carB.get_location(t)
+            if distance(a, b) < self.radius + carB.radius:
+                return t
+            t += 0.1
+        return -1
 
     def get_location(self, time):
         """
         Returns the (x, y) location of the car at a certain time.
         """
-        return self.rail.get(self.get_pos(time))
+        return self.rail.fun(self.get_pos(time))
 
     def get_interval(self, time):
         """
@@ -36,9 +72,7 @@ class Car:
             the acceleration during the range
             the time the car has spent in the range
         """
-        if time < self.start_time:
-            return 0, 0, 0, 0, 0
-        time -= self.start_time
+        scalar = 0
         speed = self.start_speed
         found = False
         i = 0
@@ -60,6 +94,7 @@ class Car:
             else:
                 time -= t
                 speed = speed + a * t
+                scalar = self.accells[i][0]
             i += 1
         return None
 
@@ -67,8 +102,6 @@ class Car:
         """
         This function takes a time and returns the scalar value of the car along its rail at that time.
         """
-        if time < self.start_time:
-            return 0
         i, d, speed, a, time = self.get_interval(time)
         if i is None:
             scalar = self.accells[-1][0]
@@ -100,7 +133,13 @@ class Car:
         """
         This copies a car
         """
-        return Car(self.start_speed, self.rail, self.start_time, self.accells.copy())
+        return Car(self.start_speed, self.rail, self.priority, self.accells.copy())
 
     def __repr__(self):
-        return str(self.accells)
+        return str(self.priority) + ":" + str(self.accells)
+
+def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
+    """
+    Returns the distance between two (x, y) locations.
+    """
+    return math.sqrt((pos_1[0] - pos_2[0]) ** 2 + (pos_1[1] - pos_2[1]) ** 2)
