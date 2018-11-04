@@ -21,21 +21,34 @@ def test_rail_fun(pos):
 # car4 = Car(1.0, rail4, 4)
 # intersection1 = Intersection([car1, car2, car3, car4], [rail1])
 
+
 cars = []
 rails = []
-for i in range(4):
-    leftrail = LeftRail(i)
-    rightrail = RightRail(i)
-    straightrail = StraightRail(i)
+for rotation in range(4):
+    leftrail = LeftRail(rotation)
+    rightrail = RightRail(rotation)
+    straightrail = StraightRail(rotation)
     rails.extend([leftrail, rightrail, straightrail])
-    cars.append(Car(1.0, leftrail, start_time=1))
-    cars.append(Car(1.0, rightrail, start_time=1))
-    cars.append(Car(1.0, straightrail, start_time=1))
+
+    cars.append(Car(1.0, leftrail))
+    cars.append(Car(1.0, rightrail))
+    cars.append(Car(1.0, straightrail))
 intersection1 = Intersection(cars, rails)
 
-view = SetupView(intersection=intersection1,
-                  window_size=(800, 600),
-                  x_lanes=2,
-                  y_lanes=2)
+setup_view = SetupView(intersection=intersection1,
+                       window_size=(800, 600),
+                       x_lanes=2,
+                       y_lanes=2)
+while not setup_view.done:
+    setup_view.tick()
+
+kars = setup_view.cars
+intersection1.cars = kars
+
+real_actual_view = ZipperView(intersection=intersection1,
+                              window_size=(800, 600),
+                              x_lanes=2,
+                              y_lanes=2)
+
 while 1:
-    view.tick()
+    real_actual_view.tick()
