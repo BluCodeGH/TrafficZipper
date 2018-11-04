@@ -8,24 +8,25 @@ from rail import Rail, LeftRail, RightRail, StraightRail
 
 cars = []
 rails = []
-for rotation in range(0, 4):
+for rotation in range(0, 2):
     leftrail = LeftRail(rotation)
-    rightrail = RightRail(rotation)
+    #rightrail = RightRail(rotation)
     straightrail = StraightRail(rotation)
-    rails.extend([leftrail, rightrail, straightrail])
-    cars.append(Car(1.0, leftrail))
-    cars.append(Car(1.0, rightrail))
-    cars.append(Car(1.0, straightrail))
-intersection1 = Intersection([], rails)
+    rails.extend([leftrail, straightrail])
+    #rails.append(leftrail)
+    cars.append(Car(1.0, leftrail, "CAR0"))
+    #cars.append(Car(1.0, rightrail, "CAR1"))
+    cars.append(Car(1.0, straightrail, "CAR2"))
+intersection1 = Intersection(cars, rails)
 intersection1.update()
 print("Cf", intersection1.cars)
 
-rails2 = [LeftRail(0), LeftRail(1), LeftRail(2)]
+#rails2 = [LeftRail(0), LeftRail(1), LeftRail(2)]
 
-intersection2 = Intersection([
-  Car(1.0, rails2[0], 0, [(133, 1.0), (163, 0.1), (184, 0.1), (318, 0.1)]),
-  Car(1.0, rails2[1], 0, [(155, 0.1), (163, 0.1), (318, 0.1)]),
-  Car(1.0, rails2[2], 0, [(134, 0.2), (155, 0.1), (184, 0.1), (318, 0.1)]),], rails2)
+# intersection2 = Intersection([
+#   Car(1.0, rails2[0], 0, [(133, 1.0), (163, 0.1), (184, 0.1), (318, 0.1)]),
+#   Car(1.0, rails2[1], 0, [(155, 0.1), (163, 0.1), (318, 0.1)]),
+#   Car(1.0, rails2[2], 0, [(134, 0.2), (155, 0.1), (184, 0.1), (318, 0.1)]),], rails2)
 
 # setup_view = SetupView(intersection=intersection1,
 #                        window_size=(800, 600),
@@ -38,7 +39,7 @@ intersection2 = Intersection([
 # intersection1.cars = kars
 # print(setup_view.lane_cars)
 
-real_actual_view = ZipperView(intersection=intersection2,
+real_actual_view = ZipperView(intersection=intersection1,
                               window_size=(800, 600),
                               x_lanes=2,
                               y_lanes=2)

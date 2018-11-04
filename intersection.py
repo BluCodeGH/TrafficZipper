@@ -89,26 +89,48 @@ class Intersection:
                 return
             i, j, time = res
             try:
-                a, d = self.handle(cars[i], cars[j], time)
+                a, d = self.handleA(cars[i], cars[j], time)
                 res = cars.copy()
                 res[i] = a
                 res[j] = d
                 #print("A", res)
                 queue.append(res)
             except ValueError:
+                print("VE")
                 pass
             try:
-                a, d = self.handle(cars[j], cars[i], time)
+                a, d = self.handleA(cars[j], cars[i], time)
                 res = cars.copy()
                 res[j] = a
                 res[i] = d
                 #print("A", res)
                 queue.append(res)
             except ValueError:
+                print("VE")
+                pass
+            try:
+                a, d = self.handleD(cars[i], cars[j], time)
+                res = cars.copy()
+                res[i] = a
+                res[j] = d
+                #print("A", res)
+                queue.append(res)
+            except ValueError:
+                print("VE")
+                pass
+            try:
+                a, d = self.handleD(cars[j], cars[i], time)
+                res = cars.copy()
+                res[j] = a
+                res[i] = d
+                #print("A", res)
+                queue.append(res)
+            except ValueError:
+                print("VE")
                 pass
 
 
-    def handle(self, carA, carD, time):
+    def handleA(self, carA, carD, time):
         """
         This function stops two cars from colliding.
         carA is the car to accelerate
@@ -131,23 +153,72 @@ class Intersection:
         i, dist, speed, a, dt = carA.get_interval(time)
         a2 = a
         newA = carA.copy()
-        while a2 < max_acceleration and self.collision(carD, newA) != -1:
-            a2 += 0.001
-            for j in range(i, -1, -1):
-                if newA.accellsI <= j:
-                    newA.accells[j] = (newA.accells[j][0], a2)
-        newA.accellsI = i
+        if i is not None:
+            while a2 < max_acceleration and self.collision(carD, newA) != -1:
+                a2 += 0.001
+                for j in range(i, -1, -1):
+                    if newA.accellsI <= j:
+                        newA.accells[j] = (newA.accells[j][0], a2)
+            newA.accellsI = i
         #print(newA)
 
         newD = carD.copy()
         #print(newD, time)
         i, dist, speed, a, dt = newD.get_interval(time)
+        if i is not None:
+            a2 = a
+            while a2 >= -max_acceleration:
+                newD.accells[i] = (newD.accells[i][0], a2)
+                if self.collision(newD, newA) == -1:
+                    break
+                a2 -= 0.001
+
+        print("got cars:", newA, newD)
+
+        return newA, newD
+
+    def handleD(self, carA, carD, time):
+        """
+        This function stops two cars from colliding.
+        carA is the car to accelerate
+        carD is the car to decelerate
+        time is the time of the collision
+
+        It works by first changing carAs last acceleration (before the collision) so it arrives on the intersection at
+        the time.
+        Next it iteratively slows carD until they do not hit at the intersection.
+
+        TODO:
+        This should then call update with the changed cars in order to propagate the changes.
+        It should return the total amount of speed changes so its parent update can optimize which car slows
+        down / speeds up.
+        """
+
+        a_dist = 60  # self.I[carA.rail][carD.rail]
+        d_dist = 60  # self.I[carD.rail][carA.rail]
+
+        i, dist, speed, a, dt = carD.get_interval(time)
         a2 = a
-        while a2 >= -max_acceleration:
-            newD.accells[i] = (newD.accells[i][0], a2)
-            if self.collision(newD, newA) == -1:
-                break
-            a2 -= 0.001
+        newD = carD.copy()
+        if i is not None:
+            while a2 >= -max_acceleration and self.collision(newD, carA) != -1:
+                a2 -= 0.001
+                for j in range(i, -1, -1):
+                    if newD.accellsI <= j:
+                        newD.accells[j] = (newD.accells[j][0], a2)
+            newD.accellsI = i
+        #print(newA)
+
+        newA = carA.copy()
+        #print(newD, time)
+        i, dist, speed, a, dt = newA.get_interval(time)
+        if i is not None:
+            a2 = a
+            while a2 < max_acceleration:
+                newA.accells[i] = (newA.accells[i][0], a2)
+                if self.collision(newD, newA) == -1:
+                    break
+                a2 += 0.001
 
         print("got cars:", newA, newD)
 

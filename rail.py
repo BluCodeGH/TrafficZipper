@@ -80,7 +80,7 @@ class RightRail(Rail):
 
 class StraightRail(Rail):
     def __init__(self, transform):
-        self.outside_len = 100
+        self.outside_len = 200
         self.inside_width = 100
         self.total_distance = self.inside_width + self.outside_len * 2
         self.transform = transform

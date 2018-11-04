@@ -8,7 +8,7 @@ from car import Car
 from rail import Rail
 
 
-FPS = 60
+FPS = 10
 
 
 # generic type for a lane
