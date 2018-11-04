@@ -76,12 +76,12 @@ class Intersection:
             cars = queue.pop(0)
             #print("C", cars)
             i = Intersection(cars, self.rails, False)
-            real_actual_view = ZipperView(intersection=i,
+            """real_actual_view = ZipperView(intersection=i,
                                           window_size=(800, 600),
                                           x_lanes=2,
                                           y_lanes=2)
             while not real_actual_view.quitting:
-                real_actual_view.tick()
+                real_actual_view.tick()"""
             res = self.firstCollision(cars)
             if res is None:
                 self.cars = cars
@@ -261,16 +261,17 @@ class Intersection:
             if dist1 >= dist2:
                 step_2 -= interval
 
-            if min_dist is None or min(dist1, dist2) < min_dist:
-                min_dist = min(dist1, dist2)
+            min_dist1_dist2 = min(dist1, dist2)
+            if min_dist is None or min_dist1_dist2 < min_dist:
+                min_dist = min_dist1_dist2
                 if down_again < 1:
                     down_again += 1
-            elif min_dist is not None and min(dist1, dist2) > min_dist and down_again > 0 and min_dist < 10:
+            elif min_dist is not None and min_dist1_dist2 > min_dist and down_again > 0 and min_dist < 10:
                 down_again = -10
                 min_steps.append((step_1, step_2))
 
             if down_again < 1:
-                min_dist = min(dist1, dist2)
+                min_dist = min_dist1_dist2
 
         return min_steps
 

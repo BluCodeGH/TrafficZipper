@@ -5,7 +5,6 @@ max_acceleration = 1
 
 
 class Car:
-
     def __init__(self, start_speed: float, rail: Rail, name, accells=None, start_time=0):
         self.start_speed = start_speed
         self.rail = rail
@@ -42,16 +41,16 @@ class Car:
             return 0, 0, 0, 0, 0
         time -= self.start_time
         speed = self.start_speed
-        found = False
+        accells = self.accells
         i = 0
-        while not found:
-            if i == len(self.accells):
+        while True:
+            if i == len(accells):
                 return None, 0, speed, 0, time
-            a = self.accells[i][1]
+            a = accells[i][1]
             if i == 0:
-                d = self.accells[i][0]
+                d = accells[i][0]
             else:
-                d = self.accells[i][0] - self.accells[i - 1][0]
+                d = accells[i][0] - accells[i - 1][0]
             v2 = math.sqrt(speed**2 + 2 * a * d)
             if speed + v2 != 0:
                 t = 2 * d / (speed + v2)
@@ -63,7 +62,6 @@ class Car:
                 time -= t
                 speed = speed + a * t
             i += 1
-        return None
 
     def get_pos(self, time):
         """
