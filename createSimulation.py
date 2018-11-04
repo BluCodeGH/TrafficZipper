@@ -1,7 +1,7 @@
 from rail import *
 from intersection import *
 from car import *
-from gui import ZipperView, SetupView
+from gui import ZipperView
 
 
 def getRail(transform, value):
