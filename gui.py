@@ -7,7 +7,6 @@ import pygame
 from intersection import Intersection
 from car import Car
 from rail import Rail
-import random
 
 
 # generic type for a lane
