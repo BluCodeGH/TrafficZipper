@@ -23,7 +23,7 @@ class Intersection:
             for rail_b in self.rails:
                 if rail_a != rail_b:
                     self.collisions_dict[rail_a][rail_b] = None
-        
+
         for rail_a in self.rails:
             for rail_b in self.rails:
                 if rail_a != rail_b:
@@ -156,6 +156,34 @@ class Intersection:
         :param rail_2:
         :return: The point of intersection of rail_1 and rail_2, or None if they don't intersect.
         """
+        step_1 = 0
+        step_2 = 0
+        min_dist = distance(rail_1.get(step_1), rail_2.get(step_2))
+        min_steps = 0.0, 0.0
+
+        while step_1 < rail_1.total_distance and step_2 < rail_2.total_distance:
+            dist1 = distance(rail_1.get(step_1 + 1), rail_2.get(step_2))
+            dist2 = distance(rail_1.get(step_1), rail_2.get(step_2 + 1))
+
+            if dist1 < dist2:
+                step_1 += 1
+            else:
+                step_2 += 1
+
+            if min_dist is None or min(dist1, dist2) < min_dist:
+                min_dist = min(dist1, dist2)
+                min_steps = step_1, step_2
+
+        return min_steps if min_dist < 0.3 else (-1, -1)
+
+    def find_intersection2(self, rail_1, rail_2):
+        """
+        Given two rails, returns the point of intersection, or None if they do not intersect.
+
+        :param rail_1:
+        :param rail_2:
+        :return: The point of intersection of rail_1 and rail_2, or None if they don't intersect.
+        """
         min_dist = None
         min_steps = 0.0, 0.0
         step_1 = 0
@@ -169,7 +197,6 @@ class Intersection:
                 step_2 += 1
             step_1 += 1
         return min_steps if min_dist < 1 else (-1, -1)
-
 
 def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
     """
