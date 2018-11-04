@@ -279,7 +279,7 @@ class IntersectionView:
 
     def tick(self):
         # delay
-        #self.clock.tick(10)
+        self.clock.tick(30)
 
         self.do_updates()
 
@@ -623,12 +623,13 @@ class SetupView(IntersectionView):
                 self.mode = 1
             if self.rail_hint_showing:
                 self.mode = 0
-                car = Car(1.0, self.current_rail, start_time=0)
+                cars_on_lane = self.lane_cars.get((self.current_lane_bound_upper,
+                                                   self.current_lane_bound_lower,
+                                                   self.current_lane_area), [])
+                car = Car(1.0, self.current_rail, start_time=len(cars_on_lane)*25)
                 self.cars.append(car)
                 # wow the next bit of code is kinda confusing
-                if self.lane_cars.get((self.current_lane_bound_upper,
-                                       self.current_lane_bound_lower,
-                                       self.current_lane_area)):
+                if cars_on_lane:
                     self.lane_cars[(self.current_lane_bound_upper,
                                     self.current_lane_bound_lower,
                                     self.current_lane_area)].append(car)
