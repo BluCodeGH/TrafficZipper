@@ -27,14 +27,14 @@ if __name__ == "__main__":
         item = item.strip()
         value = item.split(",")
 
-        rails.append(getRail(value[0], value[1]))
+        rails.append(getRail(int(value[0]), int(value[1])))
 
     cars = []
     for item in carsData:
         item = item.strip()
         value = item.split(",")
 
-        cars.append(Car(int(value[0]), rails[int(value[1]) - 1], int(value[2])))
+        cars.append(Car(int(value[0]), rails[int(value[1]) - 1], start_time=int(value[2])))
 
     intersection = Intersection(cars, rails)
     intersection.update()

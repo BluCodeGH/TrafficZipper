@@ -170,9 +170,6 @@ class Intersection:
             step_1 += 1
         return min_steps if min_dist < 1 else (-1, -1)
 
-    #def copy(self):
-    #    return Intersection(self.cars.copy(), self.rails.copy(), self.collisions_dict.copy())
-
 
 def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
     """

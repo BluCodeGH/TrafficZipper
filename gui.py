@@ -7,6 +7,7 @@ import pygame
 from intersection import Intersection
 from car import Car
 from rail import Rail
+import random
 
 
 class IntersectionView:
@@ -297,7 +298,8 @@ class ZipperView(IntersectionView):
     def draw_cars(self, cars: List[Car], time: int):
         for car in cars:
             rail = car.rail
-            scalar = car.get_pos(time)
+            start_time = car.start_time
+            scalar = car.get_pos(time - start_time)
             x, y = rail.get(scalar)
             y = -y
 
@@ -326,7 +328,11 @@ class ZipperView(IntersectionView):
 
     def do_updates(self):
         super().do_updates()
-        self.draw_cars(self.intersection.cars, self.time)
+        cars_to_draw = []
+        for car in self.intersection.cars:
+            if car.start_time < self.time:
+                cars_to_draw.append(car)
+        self.draw_cars(cars_to_draw, self.time)
 
 
 class SetupView(IntersectionView):
@@ -590,7 +596,7 @@ class SetupView(IntersectionView):
                 self.mode = 1
             if self.rail_hint_showing:
                 self.mode = 0
-                self.cars.append(Car(1.0, self.current_rail, 0))
+                self.cars.append(Car(1.0, self.current_rail, start_time=random.randint(0, 500)))
             self.handle_start_button(event)
 
     def _check_rail(self, rail: Rail) -> bool:
