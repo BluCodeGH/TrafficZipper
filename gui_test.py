@@ -8,15 +8,15 @@ from rail import Rail, LeftRail, RightRail, StraightRail
 
 cars = []
 rails = []
-for rotation in range(0, 2):
+for rotation in range(0, 4):
     leftrail = LeftRail(rotation)
     #rightrail = RightRail(rotation)
-    straightrail = StraightRail(rotation)
-    rails.extend([leftrail, straightrail])
-    #rails.append(leftrail)
+    #straightrail = StraightRail(rotation)
+    #rails.extend([leftrail, straightrail])
+    rails.append(leftrail)
     cars.append(Car(1.0, leftrail, "CAR0"))
     #cars.append(Car(1.0, rightrail, "CAR1"))
-    cars.append(Car(1.0, straightrail, "CAR2"))
+    #cars.append(Car(1.0, straightrail, "CAR2"))
 intersection1 = Intersection(cars, rails)
 intersection1.update()
 print("Cf", intersection1.cars)

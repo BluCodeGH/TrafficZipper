@@ -42,9 +42,8 @@ class Car:
             return 0, 0, 0, 0, 0
         time -= self.start_time
         speed = self.start_speed
-        found = False
         i = 0
-        while not found:
+        while True:
             if i == len(self.accells):
                 return None, 0, speed, 0, time
             a = self.accells[i][1]
@@ -53,17 +52,13 @@ class Car:
             else:
                 d = self.accells[i][0] - self.accells[i - 1][0]
             v2 = math.sqrt(speed**2 + 2 * a * d)
-            if speed + v2 != 0:
-                t = 2 * d / (speed + v2)
-            else:
-                t = 0
+            t = 2 * d / (speed + v2)
             if t > time:
                 return i, d, speed, a, time
             else:
                 time -= t
                 speed = speed + a * t
             i += 1
-        return None
 
     def get_pos(self, time):
         """
