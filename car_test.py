@@ -16,9 +16,9 @@ r2 = Rail(fun2, 200)
 r3 = Rail(fun3, 200)
 
 
-c = Car(10, r, 0, [(50, 0), (150, 0)])
-c2 = Car(10, r2, 0, [(50, 0), (150, 0)])
-c3 = Car(10, r3, 0, [(200, 0)])
+c = Car(10, r, 'car1', start_time=0, accells=[(50, 0), (150, 0)])
+c2 = Car(10, r2, 'car2', start_time=0, accells=[(50, 0), (150, 0)])
+c3 = Car(10, r3, 'car3', start_time=0, accells=[(200, 0)])
 
 _=1
 
