@@ -1,7 +1,5 @@
 from typing import List, Tuple
 import math
-import random
-from gui import ZipperView
 
 from car import Car, max_acceleration
 from rail import Rail
