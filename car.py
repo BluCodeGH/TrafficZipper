@@ -82,7 +82,7 @@ class Car:
         This function returns the time at which the car has completed all of its acceleration ranges, and is 
         assumed to be cruising at a constant velocity after leaving the intersection.
         """
-        time = 0
+        time = self.start_time
         speed = self.start_speed
         oldD = 0
         for d, a in self.accells:
