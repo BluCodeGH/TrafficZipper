@@ -28,9 +28,9 @@ for i in range(4):
     rightrail = RightRail(i)
     straightrail = StraightRail(i)
     rails.extend([leftrail, rightrail, straightrail])
-    cars.append(Car(1.0, leftrail, 1))
-    cars.append(Car(1.0, rightrail, 1))
-    cars.append(Car(1.0, straightrail, 1))
+    cars.append(Car(1.0, leftrail, start_time=1))
+    cars.append(Car(1.0, rightrail, start_time=1))
+    cars.append(Car(1.0, straightrail, start_time=1))
 intersection1 = Intersection(cars, rails)
 
 view = SetupView(intersection=intersection1,

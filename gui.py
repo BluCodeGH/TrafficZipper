@@ -296,6 +296,7 @@ class ZipperView(IntersectionView):
 
     def draw_cars(self, cars: List[Car], time: int):
         for car in cars:
+            print("!!!!!", car.start_time)
             rail = car.rail
             scalar = car.get_pos(time)
             x, y = rail.get(scalar)
