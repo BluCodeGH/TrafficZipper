@@ -55,9 +55,10 @@ class Intersection:
             car_1 = cars[i]
             for j in range(i + 1, len(cars)):
                 car_2 = cars[j]
-                if self.collisions_dict[car_1.rail][car_2.rail]:
-                    for d in self.collisions_dict[car_1.rail][car_2.rail]:
-                        collision_car_indices.append((j, d))
+                if car_1.rail != car_2.rail:
+                    if self.collisions_dict[car_1.rail][car_2.rail]:
+                        for d in self.collisions_dict[car_1.rail][car_2.rail]:
+                            collision_car_indices.append((j, d))
 
             collision_car_indices.sort(key=lambda x: x[1])
 
