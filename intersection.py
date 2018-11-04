@@ -237,7 +237,7 @@ class Intersection:
             b = carB.get_location(t)
             if distance(a, b) < carA.radius + carB.radius:
                 return t
-            t += 0.1
+            t += 5
         return -1
 
     def find_intersection(self, rail_1, rail_2):
