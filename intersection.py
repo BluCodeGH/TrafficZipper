@@ -124,6 +124,7 @@ class Intersection:
         """
         This returns whether or not two cars are going to collide.
         """
+        # TODO:  Make sure that we check for collisions if the time is past the start_time.
         time = min(carA.get_time(), carB.get_time())
         t = 0
         while t <= time:

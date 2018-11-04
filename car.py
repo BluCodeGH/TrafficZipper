@@ -6,7 +6,7 @@ max_acceleration = 1
 
 class Car:
 
-    def __init__(self, start_speed: float, rail: Rail, accells=None, start_time=0):
+    def __init__(self, start_speed: float, rail: Rail, start_time=0, accells=None):
         self.start_speed = start_speed
         self.rail = rail
         self.position = 0.0
@@ -37,7 +37,9 @@ class Car:
             the acceleration during the range
             the time the car has spent in the range
         """
-        scalar = 0
+        if time < self.start_time:
+            return 0, 0, 0, 0, 0
+        time -= self.start_time
         speed = self.start_speed
         found = False
         i = 0
@@ -59,7 +61,6 @@ class Car:
             else:
                 time -= t
                 speed = speed + a * t
-                scalar = self.accells[i][0]
             i += 1
         return None
 
@@ -67,6 +68,8 @@ class Car:
         """
         This function takes a time and returns the scalar value of the car along its rail at that time.
         """
+        if time < self.start_time:
+            return 0
         i, d, speed, a, time = self.get_interval(time)
         if i is None:
             scalar = self.accells[-1][0]
@@ -101,4 +104,4 @@ class Car:
         """
         This copies a car
         """
-        return Car(self.start_speed, self.rail, self.accells.copy(), self.start_time)
+        return Car(self.start_speed, self.rail, self.start_time, self.accells.copy())

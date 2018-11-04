@@ -1,6 +1,7 @@
 from rail import *
 from intersection import *
 from car import *
+from gui import ZipperView, SetupView
 
 
 def getRail(transform, value):
@@ -38,3 +39,11 @@ if __name__ == "__main__":
 
     intersection = Intersection(cars, rails)
     intersection.update()
+
+    real_actual_view = ZipperView(intersection=intersection,
+                                  window_size=(800, 600),
+                                  x_lanes=2,
+                                  y_lanes=2)
+
+    while 1:
+        real_actual_view.tick()
