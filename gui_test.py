@@ -3,7 +3,7 @@ import random
 
 from car import Car
 from gui import ZipperView, SetupView
-from intersection import Intersection
+from intersection import Intersection, distance
 from rail import Rail, LeftRail, RightRail, StraightRail
 
 
@@ -46,19 +46,24 @@ view = ZipperView(intersection=intersection1,
                               x_lanes=2,
                               y_lanes=2)
 
-last = -100
-lastRail = 0
 j = 0
 while not view.quitting:
     view.tick()
+    for i, car in enumerate(intersection1.cars):
+        if car.get_pos(view.time) > car.rail.total_distance:
+            intersection1.cars.pop(i)
+
     if random.randint(0, 100) < 9:
-        last = view.time
         randRail = random.randint(0, 11)
-        if randRail // 3 == lastRail and view.time - last < 40:
-            continue
-        lastRail = randRail // 3
-        print(lastRail)
         car = Car(1, intersection1.rails[randRail], "CAR" + str(j), start_time=view.time)
+        bad = False
+        for c2 in intersection1.cars:
+            if distance(c2.get_location(view.time), car.get_location(view.time)) < car.radius * 2:
+                bad = True
+            if c2.rail == car.rail:
+                bad = True
+        if bad:
+            continue
         j += 1
         intersection1.split([car])
         intersection1.cars.append(car)
@@ -66,6 +71,3 @@ while not view.quitting:
         intersection1.update()
 
 
-    for i, car in enumerate(intersection1.cars):
-        if car.get_pos(view.time) > car.rail.total_distance:
-            intersection1.cars.pop(i)

@@ -47,7 +47,6 @@ class Intersection:
             car.accells.sort(key=lambda x: x[0])
 
     def firstCollision(self, cars):
-        print(cars)
         for i in range(len(cars) - 1):
             # This will contain the indices of the rails that self.rails[i] will collide with.
             collision_car_indices = []
@@ -60,7 +59,6 @@ class Intersection:
                             collision_car_indices.append((j, d))
 
             collision_car_indices.sort(key=lambda x: x[1])
-            print(car_1, collision_car_indices)
 
             for j, _ in collision_car_indices:
                 car_2 = cars[j]
@@ -149,13 +147,13 @@ class Intersection:
         down / speeds up.
         """
 
-        a_dist = 60  # self.I[carA.rail][carD.rail]
-        d_dist = 60  # self.I[carD.rail][carA.rail]
+        didSomething = False
 
         i, dist, speed, a, dt = carA.get_interval(time)
         a2 = a
         newA = carA.copy()
         if i is not None:
+            didSomething = True
             while a2 < max_acceleration and self.collision(carD, newA) != -1:
                 a2 += 0.01
                 for j in range(i, -1, -1):
@@ -168,6 +166,7 @@ class Intersection:
         #print(newD, time)
         i, dist, speed, a, dt = newD.get_interval(time)
         if i is not None:
+            didSomething = True
             a2 = a
             while a2 >= -max_acceleration:
                 newD.accells[i] = (newD.accells[i][0], a2)
@@ -175,6 +174,8 @@ class Intersection:
                     break
                 a2 -= 0.01
 
+        if not didSomething:
+            raise ValueError("Didn't do anything.")
         print("got cars:", newA, newD)
 
         return newA, newD
@@ -196,13 +197,13 @@ class Intersection:
         down / speeds up.
         """
 
-        a_dist = 60  # self.I[carA.rail][carD.rail]
-        d_dist = 60  # self.I[carD.rail][carA.rail]
+        didSomething = False
 
         i, dist, speed, a, dt = carD.get_interval(time)
         a2 = a
         newD = carD.copy()
         if i is not None:
+            didSomething = True
             while a2 >= -max_acceleration and self.collision(newD, carA) != -1:
                 a2 -= 0.001
                 for j in range(i, -1, -1):
@@ -215,6 +216,7 @@ class Intersection:
         #print(newD, time)
         i, dist, speed, a, dt = newA.get_interval(time)
         if i is not None:
+            didSomething = True
             a2 = a
             while a2 < max_acceleration:
                 newA.accells[i] = (newA.accells[i][0], a2)
@@ -222,6 +224,8 @@ class Intersection:
                     break
                 a2 += 0.001
 
+        if not didSomething:
+            raise ValueError("Didn't do anything.")
         print("got cars:", newA, newD)
 
         return newA, newD
