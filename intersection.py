@@ -6,11 +6,12 @@ from rail import Rail
 
 
 class Intersection:
-    def __init__(self, cars: List[Car], rails: List[Rail]):
+    def __init__(self, cars: List[Car], rails: List[Rail], cl=None):
         self.cars = cars
         self.rails = rails
-        self.collisions_dict = {}
-        self.init_collisions_dict()
+        self.collisions_dict = cl or {}
+        if not cl:
+            self.init_collisions_dict()
 
     def init_collisions_dict(self):
         """
@@ -35,8 +36,14 @@ class Intersection:
                         self.collisions_dict[rail_a][rail_b] = scalar_a
                         self.collisions_dict[rail_b][rail_a] = scalar_b
 
+        for car in self.cars:
+            for rail_b, d in self.collisions_dict[car.rail].items():
+                if d is not None:
+                    car.accells.append((d, 0.1))
+            print(car.accells)
+            car.accells.sort(key=lambda x: x[0])
+
     def update(self):
-        print(self.cars)
         """
         iterate and check with all other cars, handle() at first coll.
         """
@@ -51,12 +58,9 @@ class Intersection:
 
             collision_car_indices.sort(key=lambda x: self.collisions_dict[self.cars[i].rail][self.cars[x].rail])
 
-            print("C", collision_car_indices)
-
             for j in collision_car_indices:
                 car_2 = self.cars[j]
                 collision_time = self.collision(car_1, car_2)
-                print("R", car_1, car_2, collision_time)
                 if collision_time >= 0:
                     print("Coll between", car_1, car_2)
                     _, _, speed_1, acc_1, time_1 = car_1.get_interval(collision_time)
@@ -67,10 +71,20 @@ class Intersection:
                     speed_2_coll_time = speed_2 + acc_2 * time_2
                     if speed_2_coll_time >= speed_1_coll_time:
                         # car_1 has the greater speed at the collision time, so it should be the accelerator.
-                        self.handle(i, j, collision_time)
+                        try:
+                            c = self.cars.copy()
+                            self.handle(i, j, collision_time)
+                        except ValueError:
+                            self.cars = c
+                            self.handle(j, i, collision_time)
                     else:
                         # car_2 has the greater speed at the collision time, so it should be the accelerator.
-                        self.handle(j, i, collision_time)
+                        try:
+                            c = self.cars.copy()
+                            self.handle(j, i, collision_time)
+                        except ValueError:
+                            self.cars = c
+                            self.handle(i, j, collision_time)
                     return
 
     def handle(self, carAi, carDi, time):
@@ -98,13 +112,13 @@ class Intersection:
         i, dist, speed, a, dt = carA.get_interval(time)
         a2 = a
         newA = carA.copy()
-        print(max_acceleration)
         while a2 < max_acceleration and self.collision(carD, newA) != -1:
-            a2 += 0.01
+            a2 += 0.001
             newA.accells[i] = (newA.accells[i][0], a2)
 
 
         newD = carD.copy()
+        print(newD, time)
         i, dist, speed, a, dt = newD.get_interval(time)
         a2 = a
         while a2 >= -max_acceleration:
@@ -154,7 +168,10 @@ class Intersection:
                     min_steps = step_1, step_2
                 step_2 += 1
             step_1 += 1
-        return min_steps if min_dist < 0.3 else (-1, -1)
+        return min_steps if min_dist < 1 else (-1, -1)
+
+    #def copy(self):
+    #    return Intersection(self.cars.copy(), self.rails.copy(), self.collisions_dict.copy())
 
 
 def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
