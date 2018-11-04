@@ -267,8 +267,7 @@ class IntersectionView:
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             # User clicked the close button
-            return True
-        return False
+            self.quitting = True
 
     def do_updates(self):
         # Background colour
@@ -280,9 +279,7 @@ class IntersectionView:
         # Respond to events
         quit = False
         for event in pygame.event.get():
-            if self.handle_event(event):
-                quit = True
-        return quit
+            self.handle_event(event)
 
     def tick(self):
         # delay
@@ -339,6 +336,14 @@ class ZipperView(IntersectionView):
             # draw onto screen
             self.screen.blit(new_img, new_rect)
             self.car_last_positions[car] = x, y
+
+    def handle_event(self, event):
+        super().handle_event(event)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                print("r")
+                # resets
+                self.time = 0
 
     def do_updates(self):
         quit = super().do_updates()

@@ -44,5 +44,5 @@ real_actual_view = ZipperView(intersection=intersection1,
                               x_lanes=2,
                               y_lanes=2)
 
-while 1:
+while not real_actual_view.quitting:
     real_actual_view.tick()
