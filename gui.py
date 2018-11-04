@@ -276,18 +276,16 @@ class IntersectionView:
         # draw stuff
         self.draw_intersection(self.x_lanes, self.y_lanes)
 
-        # Respond to events
-        quit = False
-        for event in pygame.event.get():
-            self.handle_event(event)
-
     def tick(self):
         # delay
         self.clock.tick(FPS)
 
-        if self.do_updates():
-            pygame.quit()
-            return True
+        self.do_updates()
+
+        # Respond to events
+        quit = False
+        for event in pygame.event.get():
+            self.handle_event(event)
 
         # Update display
         pygame.display.flip()
@@ -399,6 +397,8 @@ class SetupView(IntersectionView):
         self.centre_bottom_bound = self.centre_y + centre_rect_height / 2
 
         self.current_rail: Optional[Rail] = None
+
+        self.font = pygame.font.SysFont("Segoe UI", 72)
 
         self.done = False  # program will exit when set to True
 
@@ -625,6 +625,20 @@ class SetupView(IntersectionView):
 
     def handle_start_button(self, event):
         if event.pos[0] > self.width - 100 and event.pos[1] > self.height - 100:
+            # Dim background
+            background = pygame.Surface((self.width, self.height))
+            background.set_alpha(128)
+            background.fill((0, 0, 0))
+            self.screen.blit(background, (0, 0))
+
+            # Display a loading sign
+            loading_txt = self.font.render("Loading...", True, (255, 255, 255))
+            loading_rect = loading_txt.get_rect()
+            loading_rect.center = (self.centre_x, self.centre_y)
+            self.screen.blit(loading_txt, loading_rect)
+            pygame.display.flip()
+
+            # Quit the setup thing
             self.done = True
             #pygame.quit()
             #sys.exit()
@@ -641,7 +655,7 @@ class SetupView(IntersectionView):
                 cars_on_lane = self.lane_cars.get((self.current_lane_bound_upper,
                                                    self.current_lane_bound_lower,
                                                    self.current_lane_area), [])
-                car = Car(1.0, self.current_rail, start_time=len(cars_on_lane)*25)
+                car = Car(1.0, self.current_rail, "Car", start_time=len(cars_on_lane)*25)
                 self.cars.append(car)
                 # wow the next bit of code is kinda confusing
                 if cars_on_lane:
