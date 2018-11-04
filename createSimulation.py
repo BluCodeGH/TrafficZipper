@@ -35,7 +35,7 @@ if __name__ == "__main__":
         item = item.strip()
         value = item.split(",")
 
-        cars.append(Car(int(value[0]), rails[int(value[1]) - 1], "car" + str(index), start_time=int(value[2])))
+        cars.append(Car(int(value[0]), rails[int(value[1]) - 1], "car" + str(index) + ("STRAIGHT" if int(value[1]) % 3 == 2 else ""), start_time=int(value[2])))
 
     intersection = Intersection(cars, rails)
     intersection.update()

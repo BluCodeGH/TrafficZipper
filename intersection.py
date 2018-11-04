@@ -63,7 +63,7 @@ class Intersection:
                 car_2 = cars[j]
                 collision_time = self.collision(car_1, car_2)
                 if collision_time >= 0:
-                    print("Coll between", car_1, car_2, car_1.get_location(collision_time), car_2.get_location(collision_time))
+                    print("Coll between", car_1, car_2)#, car_1.get_location(collision_time), car_2.get_location(collision_time))
                     return i, j, collision_time
         return None
 
@@ -231,6 +231,8 @@ class Intersection:
         time = min(carA.get_time(), carB.get_time())
         t = 0
         while t <= time:
+            if t < carA.start_time or t < carB.start_time:
+                return -1
             a = carA.get_location(t)
             b = carB.get_location(t)
             if distance(a, b) < carA.radius + carB.radius:
@@ -275,27 +277,6 @@ class Intersection:
 
         return min_steps
 
-    def find_intersection2(self, rail_1, rail_2):
-        """
-        Given two rails, returns the point of intersection, or None if they do not intersect.
-
-        :param rail_1:
-        :param rail_2:
-        :return: The point of intersection of rail_1 and rail_2, or None if they don't intersect.
-        """
-        min_dist = None
-        min_steps = 0.0, 0.0
-        step_1 = 0
-        while step_1 < rail_1.total_distance:
-            step_2 = 0
-            while step_2 < rail_2.total_distance:
-                rail_dist = distance(rail_1.get(step_1), rail_2.get(step_2))
-                if min_dist is None or rail_dist < min_dist:
-                    min_dist = rail_dist
-                    min_steps = step_1, step_2
-                step_2 += 1
-            step_1 += 1
-        return min_steps if min_dist < 1 else (-1, -1)
 
 def distance(pos_1: Tuple[int, int], pos_2: Tuple[int, int]):
     """
