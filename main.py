@@ -1,3 +1,5 @@
+import sys
+
 from car import Car
 from gui import ZipperView, SetupView
 from intersection import Intersection
@@ -20,6 +22,8 @@ setup_view = SetupView(intersection=intersection,
                        y_lanes=2)
 while not setup_view.done:
     setup_view.tick()
+    if setup_view.quitting:
+        sys.exit()
 
 kars = setup_view.cars
 print("Loading")
