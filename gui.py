@@ -4,7 +4,6 @@ from typing import Tuple, List, Dict, Optional
 
 import pygame
 
-from intersection import Intersection
 from car import Car
 from rail import Rail
 import random
@@ -18,7 +17,7 @@ class IntersectionView:
     BORDER_WIDTH = 5
 
     def __init__(self, *,
-                 intersection: Intersection,
+                 intersection,
                  window_size: Tuple[int, int],
                  x_lanes: int,
                  y_lanes: int) -> None:
@@ -33,6 +32,8 @@ class IntersectionView:
         self.screen = pygame.display.set_mode(window_size)
 
         self.clock = pygame.time.Clock()
+
+        self.quitting = False
 
     def draw_intersection(self, x_lanes: int, y_lanes: int):
         x_lines = x_lanes + 1
@@ -258,7 +259,8 @@ class IntersectionView:
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             # User clicked the close button
-            sys.exit()
+            return True
+        return False
 
     def do_updates(self):
         # Background colour
@@ -268,20 +270,26 @@ class IntersectionView:
         self.draw_intersection(self.x_lanes, self.y_lanes)
 
         # Respond to events
+        quit = False
         for event in pygame.event.get():
-            self.handle_event(event)
+            if self.handle_event(event):
+                quit = True
+        return quit
 
     def tick(self):
         # delay
-        #self.clock.tick(10)
+        self.clock.tick(10)
 
-        self.do_updates()
+        if self.do_updates():
+            pygame.quit()
+            return True
 
         # Update display
         pygame.display.flip()
 
         # Increment timer
         self.time += 1
+        return False
 
 
 class ZipperView(IntersectionView):
@@ -306,7 +314,6 @@ class ZipperView(IntersectionView):
             # rotation
             rise = x - self.car_last_positions.get(car, (x, y))[0]
             run = y - self.car_last_positions.get(car, (x, y))[1]
-            print(rise, run)
             if run:
                 # no chance of a divide-by-0 error, so just calculate the angle
                 angle = math.degrees(math.atan(rise / run))
@@ -327,12 +334,13 @@ class ZipperView(IntersectionView):
             self.car_last_positions[car] = x, y
 
     def do_updates(self):
-        super().do_updates()
+        quit = super().do_updates()
         cars_to_draw = []
         for car in self.intersection.cars:
             if car.start_time < self.time:
                 cars_to_draw.append(car)
         self.draw_cars(cars_to_draw, self.time)
+        return quit
 
 
 class SetupView(IntersectionView):

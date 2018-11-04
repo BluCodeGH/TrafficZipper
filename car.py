@@ -6,13 +6,15 @@ max_acceleration = 1
 
 class Car:
 
-    def __init__(self, start_speed: float, rail: Rail, accells=None, start_time=0):
+    def __init__(self, start_speed: float, rail: Rail, name, accells=None, start_time=0):
         self.start_speed = start_speed
         self.rail = rail
+        self.name = name
         # Each element is a tuple containing the end position of the car (i.e. when the car changes its acceleration),
         # and the acceleration of the car during that interval.
         self.accells = accells or [(self.rail.total_distance, 0.1)]
-        self.radius = 30   # TODO:  Change this if necessary
+        self.accellsI = 0
+        self.radius = 25   # TODO:  Change this if necessary
         self.start_time = start_time
 
     def get_location(self, time):
@@ -97,7 +99,10 @@ class Car:
         """
         This copies a car
         """
-        return Car(self.start_speed, self.rail, self.accells.copy(), self.start_time)
+        return Car(self.start_speed, self.rail, self.name, self.accells.copy(), self.start_time)
 
     def __repr__(self):
-        return str(self.accells)
+        res = self.name + "[("
+        for d, a in self.accells:
+            res += str(round(d)) + "," + str(a) + ")("
+        return res + "]"

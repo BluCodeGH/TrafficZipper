@@ -1,19 +1,21 @@
 from typing import List, Tuple
 import math
+import random
+from gui import ZipperView
 
 from car import Car, max_acceleration
 from rail import Rail
 
 
 class Intersection:
-    def __init__(self, cars: List[Car], rails: List[Rail], cl=None):
+    def __init__(self, cars: List[Car], rails: List[Rail], clCars=True, cl=None):
         self.cars = cars
         self.rails = rails
         self.collisions_dict = cl or {}
         if not cl:
-            self.init_collisions_dict()
+            self.init_collisions_dict(clCars)
 
-    def init_collisions_dict(self):
+    def init_collisions_dict(self, clCars):
         """
         Initializes the dictionary of collision points between
         rails, setting each value to None.
@@ -22,7 +24,7 @@ class Intersection:
             self.collisions_dict[rail_a] = {}
             for rail_b in self.rails:
                 if rail_a != rail_b:
-                    self.collisions_dict[rail_a][rail_b] = None
+                    self.collisions_dict[rail_a][rail_b] = []
 
         for rail_a in self.rails:
             for rail_b in self.rails:
@@ -30,64 +32,83 @@ class Intersection:
                     if self.collisions_dict[rail_a][rail_b]:
                         # We have already filled in this dictionary entry.
                         continue
-                    scalar_a, scalar_b = self.find_intersection(rail_a, rail_b)
-                    if scalar_a >= 0:
+                    ints = self.find_intersection(rail_a, rail_b)
+                    for a, b in ints:
                         # If the rails don't collide, the dictionary value stays at 0.
-                        self.collisions_dict[rail_a][rail_b] = scalar_a
-                        self.collisions_dict[rail_b][rail_a] = scalar_b
+                        self.collisions_dict[rail_a][rail_b].append(a)
+                        self.collisions_dict[rail_b][rail_a].append(b)
 
-        for car in self.cars:
-            for rail_b, d in self.collisions_dict[car.rail].items():
-                if d is not None:
-                    car.accells.append((d, 0.1))
-            print(car.accells)
-            car.accells.sort(key=lambda x: x[0])
+        if clCars:
+            for car in self.cars:
+                for rail_b, ds in self.collisions_dict[car.rail].items():
+                    if ds is not None:
+                        for d in ds:
+                            car.accells.append((d, 0.1))
+                car.accells.sort(key=lambda x: x[0])
+
+    def firstCollision(self, cars):
+        for i in range(len(cars) - 1):
+            # This will contain the indices of the rails that self.rails[i] will collide with.
+            collision_car_indices = []
+            car_1 = cars[i]
+            for j in range(i + 1, len(cars)):
+                car_2 = cars[j]
+                if self.collisions_dict[car_1.rail][car_2.rail]:
+                    for d in self.collisions_dict[car_1.rail][car_2.rail]:
+                        collision_car_indices.append((j, d))
+
+            collision_car_indices.sort(key=lambda x: x[1])
+
+            for j, _ in collision_car_indices:
+                car_2 = cars[j]
+                collision_time = self.collision(car_1, car_2)
+                if collision_time >= 0:
+                    print("Coll between", car_1, car_2, car_1.get_location(collision_time), car_2.get_location(collision_time))
+                    return i, j, collision_time
+        return None
 
     def update(self):
         """
         iterate and check with all other cars, handle() at first coll.
         """
-        for i in range(len(self.cars) - 1):
-            # This will contain the indices of the rails that self.rails[i] will collide with.
-            collision_car_indices = []
-            car_1 = self.cars[i]
-            for j in range(i + 1, len(self.cars)):
-                car_2 = self.cars[j]
-                if self.collisions_dict[car_1.rail][car_2.rail]:
-                    collision_car_indices.append(j)
+        queue = [self.cars]
+        while len(queue) > 0:
+            cars = queue.pop(0)
+            #print("C", cars)
+            i = Intersection(cars, self.rails, False)
+            real_actual_view = ZipperView(intersection=i,
+                                          window_size=(800, 600),
+                                          x_lanes=2,
+                                          y_lanes=2)
+            quit = False
+            while not quit:
+                quit = real_actual_view.tick()
+            res = self.firstCollision(cars)
+            if res is None:
+                self.cars = cars
+                return
+            i, j, time = res
+            try:
+                a, d = self.handle(cars[i], cars[j], time)
+                res = cars.copy()
+                res[i] = a
+                res[j] = d
+                #print("A", res)
+                queue.append(res)
+            except ValueError:
+                pass
+            try:
+                a, d = self.handle(cars[j], cars[i], time)
+                res = cars.copy()
+                res[j] = a
+                res[i] = d
+                #print("A", res)
+                queue.append(res)
+            except ValueError:
+                pass
 
-            collision_car_indices.sort(key=lambda x: self.collisions_dict[self.cars[i].rail][self.cars[x].rail])
 
-            for j in collision_car_indices:
-                car_2 = self.cars[j]
-                collision_time = self.collision(car_1, car_2)
-                if collision_time >= 0:
-                    print("Coll between", car_1, car_2)
-                    _, _, speed_1, acc_1, time_1 = car_1.get_interval(collision_time)
-                    _, _, speed_2, acc_2, time_2 = car_2.get_interval(collision_time)
-
-                    # Get the speeds that each car will have at the time they collide.
-                    speed_1_coll_time = speed_1 + acc_1 * time_1
-                    speed_2_coll_time = speed_2 + acc_2 * time_2
-                    if speed_2_coll_time >= speed_1_coll_time:
-                        # car_1 has the greater speed at the collision time, so it should be the accelerator.
-                        try:
-                            c = self.cars.copy()
-                            self.handle(i, j, collision_time)
-                        except ValueError:
-                            self.cars = c
-                            self.handle(j, i, collision_time)
-                    else:
-                        # car_2 has the greater speed at the collision time, so it should be the accelerator.
-                        try:
-                            c = self.cars.copy()
-                            self.handle(j, i, collision_time)
-                        except ValueError:
-                            self.cars = c
-                            self.handle(i, j, collision_time)
-                    return
-
-    def handle(self, carAi, carDi, time):
+    def handle(self, carA, carD, time):
         """
         This function stops two cars from colliding.
         carA is the car to accelerate
@@ -103,8 +124,6 @@ class Intersection:
         It should return the total amount of speed changes so its parent update can optimize which car slows
         down / speeds up.
         """
-        carA = self.cars[carAi]
-        carD = self.cars[carDi]
 
         a_dist = 60  # self.I[carA.rail][carD.rail]
         d_dist = 60  # self.I[carD.rail][carA.rail]
@@ -114,11 +133,14 @@ class Intersection:
         newA = carA.copy()
         while a2 < max_acceleration and self.collision(carD, newA) != -1:
             a2 += 0.001
-            newA.accells[i] = (newA.accells[i][0], a2)
-
+            for j in range(i, -1, -1):
+                if newA.accellsI <= j:
+                    newA.accells[j] = (newA.accells[j][0], a2)
+        newA.accellsI = i
+        #print(newA)
 
         newD = carD.copy()
-        print(newD, time)
+        #print(newD, time)
         i, dist, speed, a, dt = newD.get_interval(time)
         a2 = a
         while a2 >= -max_acceleration:
@@ -127,12 +149,9 @@ class Intersection:
                 break
             a2 -= 0.001
 
-        print("got cars:", newA.accells, newD.accells)
+        print("got cars:", newA, newD)
 
-        self.cars[carAi] = newA
-        self.cars[carDi] = newD
-        print(self.cars)
-        self.update()
+        return newA, newD
 
     def collision(self, carA: Car, carB: Car):
         """
@@ -157,24 +176,32 @@ class Intersection:
         :return: The point of intersection of rail_1 and rail_2, or None if they don't intersect.
         """
         step_1 = 0
-        step_2 = 0
+        step_2 = rail_2.total_distance
         min_dist = distance(rail_1.get(step_1), rail_2.get(step_2))
-        min_steps = 0.0, 0.0
+        min_steps = []
+        down_again = 1
+        interval = 0.05
+        while step_1 < rail_1.total_distance and step_2 >= 0:
+            dist1 = distance(rail_1.get(step_1 + interval), rail_2.get(step_2))
+            dist2 = distance(rail_1.get(step_1), rail_2.get(step_2 - interval))
 
-        while step_1 < rail_1.total_distance and step_2 < rail_2.total_distance:
-            dist1 = distance(rail_1.get(step_1 + 1), rail_2.get(step_2))
-            dist2 = distance(rail_1.get(step_1), rail_2.get(step_2 + 1))
-
-            if dist1 < dist2:
-                step_1 += 1
-            else:
-                step_2 += 1
+            if dist1 <= dist2:
+                step_1 += interval
+            if dist1 >= dist2:
+                step_2 -= interval
 
             if min_dist is None or min(dist1, dist2) < min_dist:
                 min_dist = min(dist1, dist2)
-                min_steps = step_1, step_2
+                if down_again < 1:
+                    down_again += 1
+            elif min_dist is not None and min(dist1, dist2) > min_dist and down_again > 0 and min_dist < 10:
+                down_again = -10
+                min_steps.append((step_1, step_2))
 
-        return min_steps if min_dist < 0.3 else (-1, -1)
+            if down_again < 1:
+                min_dist = min(dist1, dist2)
+
+        return min_steps
 
     def find_intersection2(self, rail_1, rail_2):
         """
