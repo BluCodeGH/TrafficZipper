@@ -3,6 +3,8 @@ import math
 
 
 class Rail:
+    name = "Rail"
+
     def __init__(self, fun: Callable, distance):
         self.fun = fun
         self.total_distance = distance
@@ -12,6 +14,8 @@ class Rail:
 
 
 class LeftRail(Rail):
+    name = "LeftRail"
+
     def __init__(self, transform):
         self.outside_len = 100
         self.inside_width = 100
@@ -50,8 +54,16 @@ class LeftRail(Rail):
         self.cache[scalar] = r
         return r
 
+    def __hash__(self):
+        return hash(self.name + str(self.transform))  # LeftRail3
+
+    def __eq__(self, other):
+        return self.name == other.name and self.transform == other.transform
+
 
 class RightRail(Rail):
+    name = "RightRail"
+
     def __init__(self, transform):
         self.outside_len = 100
         self.inside_width = 100
@@ -83,8 +95,16 @@ class RightRail(Rail):
             y_cord = self.inside_width / 2 - 25 * math.cos(angle)
             return self.applyTransform(x_cord, y_cord, self.transform)
 
+    def __hash__(self):
+        return hash(self.name + str(self.transform))  # RightRail0
+
+    def __eq__(self, other):
+        return self.name == other.name and self.transform == other.transform
+
 
 class StraightRail(Rail):
+    name = "StraightRail"
+
     def __init__(self, transform):
         self.outside_len = 100
         self.inside_width = 100
@@ -100,6 +120,12 @@ class StraightRail(Rail):
         x_cord = scalar - self.total_distance / 2
         y_cord = -25
         return self.applyTransform(x_cord, y_cord, self.transform)
+
+    def __hash__(self):
+        return hash(self.name + str(self.transform))  # StraightRail1
+
+    def __eq__(self, other):
+        return self.name == other.name and self.transform == other.transform
 
 
 class LeftRail2(Rail):
