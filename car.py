@@ -20,7 +20,7 @@ class Car:
         """
         Returns the (x, y) location of the car at a certain time.
         """
-        return self.rail.fun(self.get_pos(time))
+        return self.rail.get(self.get_pos(time))
 
     def get_interval(self, time):
         """

@@ -27,7 +27,7 @@ if __name__ == "__main__":
         item = item.strip()
         value = item.split(",")
 
-        rails.append(getRail(value[0], value[1]))
+        rails.append(getRail(int(value[0]), int(value[1])))
 
     cars = []
     for item in carsData:
