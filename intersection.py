@@ -13,9 +13,11 @@ class Intersection:
         self.rails = rails
         self.collisions_dict = cl or {}
         if not cl:
-            self.init_collisions_dict(clCars)
+            self.init_collisions_dict()
+            if clCars:
+                self.split(self.cars)
 
-    def init_collisions_dict(self, clCars):
+    def init_collisions_dict(self):
         """
         Initializes the dictionary of collision points between
         rails, setting each value to None.
@@ -38,13 +40,13 @@ class Intersection:
                         self.collisions_dict[rail_a][rail_b].append(a)
                         self.collisions_dict[rail_b][rail_a].append(b)
 
-        if clCars:
-            for car in self.cars:
-                for rail_b, ds in self.collisions_dict[car.rail].items():
-                    if ds is not None:
-                        for d in ds:
-                            car.accells.append((d, 0.1))
-                car.accells.sort(key=lambda x: x[0])
+    def split(self, cars):
+        for car in cars:
+            for rail_b, ds in self.collisions_dict[car.rail].items():
+                if ds is not None:
+                    for d in ds:
+                        car.accells.append((d, 0.1))
+            car.accells.sort(key=lambda x: x[0])
 
     def firstCollision(self, cars):
         for i in range(len(cars) - 1):
@@ -75,13 +77,13 @@ class Intersection:
         while len(queue) > 0:
             cars = queue.pop(0)
             #print("C", cars)
-            i = Intersection(cars, self.rails, False)
-            """real_actual_view = ZipperView(intersection=i,
-                                          window_size=(800, 600),
-                                          x_lanes=2,
-                                          y_lanes=2)
-            while not real_actual_view.quitting:
-                real_actual_view.tick()"""
+            # i = Intersection(cars, self.rails, False)
+            # real_actual_view = ZipperView(intersection=i,
+            #                               window_size=(800, 600),
+            #                               x_lanes=2,
+            #                               y_lanes=2)
+            # while not real_actual_view.quitting:
+            #     real_actual_view.tick()
             res = self.firstCollision(cars)
             if res is None:
                 self.cars = cars
@@ -154,7 +156,7 @@ class Intersection:
         newA = carA.copy()
         if i is not None:
             while a2 < max_acceleration and self.collision(carD, newA) != -1:
-                a2 += 0.001
+                a2 += 0.01
                 for j in range(i, -1, -1):
                     if newA.accellsI <= j:
                         newA.accells[j] = (newA.accells[j][0], a2)
@@ -170,7 +172,7 @@ class Intersection:
                 newD.accells[i] = (newD.accells[i][0], a2)
                 if self.collision(newD, newA) == -1:
                     break
-                a2 -= 0.001
+                a2 -= 0.01
 
         print("got cars:", newA, newD)
 

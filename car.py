@@ -52,10 +52,7 @@ class Car:
             else:
                 d = accells[i][0] - accells[i - 1][0]
             v2 = math.sqrt(speed**2 + 2 * a * d)
-            if speed + v2 != 0:
-                t = 2 * d / (speed + v2)
-            else:
-                t = 0
+            t = 2 * d / (speed + v2)
             if t > time:
                 return i, d, speed, a, time
             else:
