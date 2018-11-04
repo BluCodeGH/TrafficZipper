@@ -29,10 +29,11 @@ for rotation in range(4):
     rightrail = RightRail(rotation)
     straightrail = StraightRail(rotation)
     rails.extend([leftrail, rightrail, straightrail])
-    cars.append(Car(1.0, leftrail, 1))
-    cars.append(Car(1.0, rightrail, 1))
-    cars.append(Car(1.0, straightrail, 1))
+    cars.append(Car(1.0, leftrail))
+    cars.append(Car(1.0, rightrail))
+    cars.append(Car(1.0, straightrail))
 intersection1 = Intersection([], rails)
+intersection1.update()
 
 setup_view = SetupView(intersection=intersection1,
                        window_size=(800, 600),
@@ -43,6 +44,7 @@ while not setup_view.done:
 
 kars = setup_view.cars
 intersection1.cars = kars
+print(setup_view.lane_cars)
 
 real_actual_view = ZipperView(intersection=intersection1,
                               window_size=(800, 600),

@@ -9,6 +9,12 @@ from car import Car
 from rail import Rail
 
 
+# generic type for a lane
+# (upperbound, lowerbound, side)
+# side (lane[2]) is one of "U", "D", "L", "R"
+Lane = Tuple[int, int, str]
+
+
 class IntersectionView:
     BACK_COLOUR = 0x2e, 0x7d, 0x32
     BORDER_COLOUR = 0, 0, 0
@@ -304,7 +310,7 @@ class ZipperView(IntersectionView):
             # rotation
             rise = x - self.car_last_positions.get(car, (x, y))[0]
             run = y - self.car_last_positions.get(car, (x, y))[1]
-            print(rise, run)
+            #print(rise, run)
             if run:
                 # no chance of a divide-by-0 error, so just calculate the angle
                 angle = math.degrees(math.atan(rise / run))
@@ -331,6 +337,7 @@ class ZipperView(IntersectionView):
 
 class SetupView(IntersectionView):
     CAR_HINT_MARGIN = 50
+    CAR_SPACING = 64
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -349,6 +356,7 @@ class SetupView(IntersectionView):
         self.mode = 0
 
         self.cars: List[Car] = []
+        self.lane_cars: Dict[Lane, List[Car]] = {}
         self.car_hint_showing = False
         self.rail_hint_showing = False
 
@@ -359,7 +367,7 @@ class SetupView(IntersectionView):
 
         self.current_lane_bound_upper = 0
         self.current_lane_bound_lower = 0
-        self.current_lane_area = 0
+        self.current_lane_area = ""
 
         centre_rect_width = self.y_lanes * self.LANE_WIDTH
         centre_rect_height = self.x_lanes * self.LANE_WIDTH
@@ -386,17 +394,22 @@ class SetupView(IntersectionView):
                 for lane in range(self.x_lanes // 2):
                     lane_bound_upper = self.centre_y + self.LANE_WIDTH * lane
                     lane_bound_lower = self.centre_y + self.LANE_WIDTH * (lane + 1)
-                    if lane_bound_upper <= mousey < lane_bound_lower:
+                    car_list = self.lane_cars.get((lane_bound_upper, lane_bound_lower, "L"), [])
+                    if lane_bound_upper <= mousey < lane_bound_lower and len(car_list) < 3:
+                        # show the hint
+                        # check for existing cars
+                        offset = self.CAR_SPACING * len(car_list)
+
                         self.car_hint_showing = True
                         new_rect = self.car_img2.get_rect().copy()
                         self.car_permanent_hint.center = new_rect.center = \
-                            (self.centre_left_bound - self.CAR_HINT_MARGIN,
+                            (self.centre_left_bound - self.CAR_HINT_MARGIN - offset,
                              (lane_bound_lower + lane_bound_upper) / 2)
                         self.car_permanent_hint_rotated = False
                         self.screen.blit(self.car_img2, new_rect)
                         self.current_lane_bound_upper = lane_bound_upper
                         self.current_lane_bound_lower = lane_bound_lower
-                        self.current_lane_area = self.centre_left_bound
+                        self.current_lane_area = "L"
         elif mousex >= self.centre_right_bound:
             # right side of lines
             if self.x_lanes % 2 == 0:
@@ -405,17 +418,22 @@ class SetupView(IntersectionView):
                 for lane in range(self.x_lanes // 2):
                     lane_bound_upper = self.centre_y - self.LANE_WIDTH * lane
                     lane_bound_lower = self.centre_y - self.LANE_WIDTH * (lane + 1)
-                    if lane_bound_upper > mousey >= lane_bound_lower:
+                    car_list = self.lane_cars.get((lane_bound_upper, lane_bound_lower, "R"), [])
+                    if lane_bound_upper > mousey >= lane_bound_lower and len(car_list) < 3:
+                        # show the hint
+                        # check for existing cars
+                        offset = self.CAR_SPACING * len(car_list)
+
                         self.car_hint_showing = True
                         new_rect = self.car_img2.get_rect().copy()
                         self.car_permanent_hint.center = new_rect.center = \
-                            (self.centre_right_bound + self.CAR_HINT_MARGIN,
+                            (self.centre_right_bound + self.CAR_HINT_MARGIN + offset,
                              (lane_bound_lower + lane_bound_upper) / 2)
                         self.car_permanent_hint_rotated = False
                         self.screen.blit(self.car_img2, new_rect)
                         self.current_lane_bound_upper = lane_bound_upper
                         self.current_lane_bound_lower = lane_bound_lower
-                        self.current_lane_area = self.centre_right_bound
+                        self.current_lane_area = "R"
         elif mousey <= self.centre_top_bound:
             # top side of lines
             if self.y_lanes % 2 == 0:
@@ -424,18 +442,23 @@ class SetupView(IntersectionView):
                 for lane in range(self.y_lanes // 2):
                     lane_bound_left = self.centre_x - self.LANE_WIDTH * lane
                     lane_bound_right = self.centre_x - self.LANE_WIDTH * (lane + 1)
-                    if lane_bound_left > mousex >= lane_bound_right:
+                    car_list = self.lane_cars.get((lane_bound_left, lane_bound_right, "U"), [])
+                    if lane_bound_left > mousex >= lane_bound_right and len(car_list) < 3:
+                        # show the hint
+                        # check for existing cars
+                        offset = self.CAR_SPACING * len(car_list)
+
                         self.car_hint_showing = True
                         new_img = pygame.transform.rotate(self.car_img2, -90)
                         new_rect = new_img.get_rect()
                         self.car_permanent_hint.center = new_rect.center = \
                             ((lane_bound_left + lane_bound_right) / 2,
-                             self.centre_top_bound - self.CAR_HINT_MARGIN)
+                             self.centre_top_bound - self.CAR_HINT_MARGIN - offset)
                         self.car_permanent_hint_rotated = True
                         self.screen.blit(new_img, new_rect)
                         self.current_lane_bound_upper = lane_bound_left
                         self.current_lane_bound_lower = lane_bound_right
-                        self.current_lane_area = self.centre_top_bound
+                        self.current_lane_area = "U"
         elif mousey >= self.centre_bottom_bound:
             # right side of lines
             if self.y_lanes % 2 == 0:
@@ -444,18 +467,23 @@ class SetupView(IntersectionView):
                 for lane in range(self.x_lanes // 2):
                     lane_bound_left = self.centre_x + self.LANE_WIDTH * lane
                     lane_bound_right = self.centre_x + self.LANE_WIDTH * (lane + 1)
-                    if lane_bound_left <= mousex < lane_bound_right:
+                    car_list = self.lane_cars.get((lane_bound_left, lane_bound_right, "D"), [])
+                    if lane_bound_left <= mousex < lane_bound_right and len(car_list) < 3:
+                        # show the hint
+                        # check for existing cars
+                        offset = self.CAR_SPACING * len(car_list)
+
                         self.car_hint_showing = True
                         new_img = pygame.transform.rotate(self.car_img2, 90)
                         new_rect = new_img.get_rect()
                         self.car_permanent_hint.center = new_rect.center = \
                             ((lane_bound_left + lane_bound_right) / 2,
-                             self.centre_bottom_bound + self.CAR_HINT_MARGIN)
+                             self.centre_bottom_bound + self.CAR_HINT_MARGIN + offset)
                         self.car_permanent_hint_rotated = True
                         self.screen.blit(new_img, new_rect)
                         self.current_lane_bound_upper = lane_bound_left
                         self.current_lane_bound_lower = lane_bound_right
-                        self.current_lane_area = self.centre_bottom_bound
+                        self.current_lane_area = "D"
 
     def show_rail_hint(self, mousex: int, mousey: int):
         self.rail_hint_showing = False
@@ -590,20 +618,42 @@ class SetupView(IntersectionView):
                 self.mode = 1
             if self.rail_hint_showing:
                 self.mode = 0
-                self.cars.append(Car(1.0, self.current_rail, 0))
+                car = Car(1.0, self.current_rail)
+                self.cars.append(car)
+                # wow the next bit of code is kinda confusing
+                if self.lane_cars.get((self.current_lane_bound_upper,
+                                       self.current_lane_bound_lower,
+                                       self.current_lane_area)):
+                    self.lane_cars[(self.current_lane_bound_upper,
+                                    self.current_lane_bound_lower,
+                                    self.current_lane_area)].append(car)
+                else:
+                    self.lane_cars[(self.current_lane_bound_upper,
+                                    self.current_lane_bound_lower,
+                                    self.current_lane_area)] = [car]
             self.handle_start_button(event)
 
     def _check_rail(self, rail: Rail) -> bool:
         x, y = rail.get(0)
         y = -y
-        return ((self.current_lane_area == self.centre_left_bound
+        return ((self.current_lane_area == "L"
                     and self.current_lane_bound_upper <= (y + self.height/2) < self.current_lane_bound_lower)
-                or (self.current_lane_area == self.centre_right_bound
+                or (self.current_lane_area == "R"
                     and self.current_lane_bound_upper > (y + self.height/2) >= self.current_lane_bound_lower)
-                or (self.current_lane_area == self.centre_top_bound
+                or (self.current_lane_area == "U"
                     and self.current_lane_bound_upper > (x + self.width/2) >= self.current_lane_bound_lower)
-                or (self.current_lane_area == self.centre_bottom_bound
+                or (self.current_lane_area == "D"
                     and self.current_lane_bound_upper <= (x + self.width/2) < self.current_lane_bound_lower))
+
+    def _bound_from_side_offset(self, side: str, offset: int) -> int:
+        if side == "U":
+            return self.centre_top_bound - self.CAR_HINT_MARGIN - offset
+        elif side == "D":
+            return self.centre_bottom_bound + self.CAR_HINT_MARGIN + offset
+        elif side == "L":
+            return self.centre_left_bound - self.CAR_HINT_MARGIN - offset
+        elif side == "R":
+            return self.centre_right_bound + self.CAR_HINT_MARGIN + offset
 
     def do_updates(self):
         super().do_updates()
@@ -637,3 +687,17 @@ class SetupView(IntersectionView):
 
             # place end position
             self.show_rail_hint(mousex, mousey)
+
+        # draw placed cars
+        for (ubound, lbound, side), cars in self.lane_cars.items():
+            for i in range(len(cars)):
+                newimg = self.car_img
+                newrect = self.car_permanent_hint
+                xpos = self._bound_from_side_offset(side, self.CAR_SPACING * i)
+                ypos = (ubound + lbound) / 2
+                if side in ("U", "D"):
+                    newimg = pygame.transform.rotate(newimg, 90)
+                    newrect = newimg.get_rect()
+                    xpos, ypos = ypos, xpos
+                newrect.center = (xpos, ypos)
+                self.screen.blit(newimg, newrect)
