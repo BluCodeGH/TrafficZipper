@@ -31,11 +31,11 @@ if __name__ == "__main__":
         rails.append(getRail(int(value[0]), int(value[1])))
 
     cars = []
-    for item in carsData:
+    for index, item in enumerate(carsData):
         item = item.strip()
         value = item.split(",")
 
-        cars.append(Car(int(value[0]), rails[int(value[1]) - 1], start_time=int(value[2])))
+        cars.append(Car(int(value[0]), rails[int(value[1]) - 1], "car" + str(index), start_time=int(value[2])))
 
     intersection = Intersection(cars, rails)
     intersection.update()
